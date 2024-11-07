@@ -38,7 +38,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("date", models.DateField(unique=True)),
-                ("number_of_lectures", models.PositiveSmallIntegerField(default=3)),
+                (
+                    "number_of_lectures",
+                    models.PositiveSmallIntegerField(default=3),
+                ),
             ],
         ),
         migrations.CreateModel(
