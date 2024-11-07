@@ -2,9 +2,18 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.schedule_entry_list, name='schedule_entry_list'),
-    path('teacher/<int:teacher_id>/', views.teacher_schedule, name='teacher_schedule'),
-    path('group/<int:group_id>/', views.group_schedule, name='group_schedule'),
-    path('create/', views.schedule_entry_create, name='schedule_entry_create'),
-    path('update/<int:pk>/', views.schedule_entry_update, name='schedule_entry_update'),
+    path('create/', views.date_selection_view, name='date_selection'),
+    path('lectures/', views.adjust_lectures_view, name='adjust_lectures'),
+    path('adjust_lectures/', views.adjust_lectures_view,
+         name='adjust_lectures'),
+    path('assign_teachers/', views.assign_teachers_view,
+         name='assign_teachers'),
+    path('schedule/', views.schedule_view,
+         name='schedule'),
+    path('schedule/group/<int:group_id>/', views.group_schedule_view,
+         name='group_schedule'),
+    path('schedule/teacher/<int:teacher_id>', views.teacher_schedule_view,
+         name='teacher_schedule'),
+    path('schedule_success/', views.schedule_success_view,
+         name='schedule_success'),
 ]

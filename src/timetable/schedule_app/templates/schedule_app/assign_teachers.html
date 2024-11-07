@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Назначение преподавателей</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Время</th>
+            <th>Преподаватель</th>
+            <th>Группы</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for form, time_slot in form_time_slot_pairs %}
+        <tr>
+            <td>
+                {{ time_slot.schedule_date.date }}
+                {{ form.time_slot }}
+                <!-- Убедитесь, что это поле рендерится только один раз -->
+            </td>
+            <td>{{ time_slot.start_time }} - {{ time_slot.end_time }}</td>
+            <td>
+                {{ form.teacher.errors }}
+                {{ form.teacher }}
+            </td>
+            <td>
+                {{ form.groups.errors }}
+                {{ form.groups }}
+            </td>
+        </tr>
+
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {{ form.errors }}
+        </div>
+        {% endif %}
+
+        {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}
