@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Расписание для группы {{ group.name }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Расписание для группы {{ group.name }}</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>День</th>
+            <th>Время</th>
+            <th>Неделя</th>
+            <th>Курс</th>
+            <th>Преподаватель</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in schedule_entries %}
+        <tr>
+            <td>{{ entry.timeslot.get_day_display }}</td>
+            <td>{{ entry.timeslot.start_time|time:"H:i" }} - {{ entry.timeslot.end_time|time:"H:i" }}</td>
+            <td>{{ entry.timeslot.get_week_parity_display }}</td>
+            <td>{{ entry.course.name }}</td>
+            <td>{{ entry.course.teacher.name }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">Нет записей расписания.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
