@@ -1,3 +1,5 @@
+<!-- assign_teachers.html -->
+
 {% extends 'base.html' %}
 
 {% block content %}
@@ -5,43 +7,55 @@
 <form method="post">
     {% csrf_token %}
     {{ formset.management_form }}
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Дата</th>
-            <th>Время</th>
-            <th>Преподаватель</th>
-            <th>Группы</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for form, time_slot in form_time_slot_pairs %}
-        <tr>
-            <td>
-                {{ time_slot.schedule_date.date }}
-                {{ form.time_slot }}
-                <!-- Убедитесь, что это поле рендерится только один раз -->
-            </td>
-            <td>{{ time_slot.start_time }} - {{ time_slot.end_time }}</td>
-            <td>
-                {{ form.teacher.errors }}
-                {{ form.teacher }}
-            </td>
-            <td>
-                {{ form.groups.errors }}
-                {{ form.groups }}
-            </td>
-        </tr>
-
-        {% if form.errors %}
-        <div class="alert alert-danger">
-            {{ form.errors }}
+    <div class="row">
+        {% for date, form in date_form_pairs %}
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    {{ date|date:"d.m.Y" }}
+                    <!-- Удаляем недопустимую часть с lecture -->
+                    <!-- <span class="badge badge-info">{{ form.time_slot.label }}: {{ lecture.get_start_time }} - {{ lecture.get_end_time }}</span> -->
+                    <button type="button" class="close remove-card" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Рендерим скрытые поля -->
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                    <!-- Рендерим видимые поля -->
+                    <div class="form-group">
+                        {{ form.morning_teacher.label_tag }} {{ form.morning_teacher }}{{ form.morning_teacher.errors }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.evening_teacher.label_tag }} {{ form.evening_teacher }} {{ form.evening_teacher.errors }}
+                    </div>
+                </div>
+            </div>
         </div>
-        {% endif %}
-
         {% endfor %}
-        </tbody>
-    </table>
+    </div>
     <button type="submit" class="btn btn-primary">Сохранить</button>
 </form>
+
+<!-- JavaScript для удаления карточек -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const removeButtons = document.querySelectorAll('.remove-card');
+        removeButtons.forEach(function(button) {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const card = button.closest('.col-md-4');
+                // Находим поле DELETE внутри карточки и устанавливаем его значение
+                const deleteField = card.querySelector('input[name$="-DELETE"]');
+                if (deleteField) {
+                    deleteField.value = 'on';
+                }
+                // Скрываем карточку
+                card.style.display = 'none';
+            });
+        });
+    });
+</script>
 {% endblock %}

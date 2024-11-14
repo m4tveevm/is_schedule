@@ -13,12 +13,12 @@ urlpatterns = [
     ),
     path("schedule/", views.schedule_view, name="schedule"),
     path(
-        "schedule/group/<int:group_id>/",
+        "schedule/group/",
         views.group_schedule_view,
         name="group_schedule",
     ),
     path(
-        "schedule/teacher/<int:teacher_id>",
+        "schedule/teacher/",
         views.teacher_schedule_view,
         name="teacher_schedule",
     ),

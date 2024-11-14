@@ -4,7 +4,7 @@ from django import forms
 from django.forms import modelformset_factory
 from django.utils import timezone
 
-from .models import Group, ScheduleDate, Teacher, TimeSlot
+from .models import Group, ScheduleDate, Teacher
 
 
 # CRUD препод.
@@ -41,34 +41,31 @@ class DateSelectionForm(forms.Form):
 class ScheduleDateForm(forms.ModelForm):
     class Meta:
         model = ScheduleDate
-        fields = ["id", "date", "number_of_lectures"]
+        fields = ["id", "date"]  # Удалили "number_of_lectures"
         widgets = {
             "id": forms.HiddenInput(),
             "date": forms.HiddenInput(),
-            "number_of_lectures": forms.NumberInput(
-                attrs={"min": 1, "max": 5}
-            ),
         }
-
 
 ScheduleDateFormSet = modelformset_factory(
     ScheduleDate, form=ScheduleDateForm, extra=0
 )
 
 
-class LectureAssignmentForm(forms.Form):
-    time_slot = forms.CharField(widget=forms.HiddenInput())
-    teacher = forms.ModelChoiceField(
-        queryset=Teacher.objects.all(), widget=forms.Select()
+class TeacherAssignmentForm(forms.Form):
+    date = forms.DateField(widget=forms.HiddenInput())
+    morning_teacher = forms.ModelChoiceField(
+        queryset=Teacher.objects.all(),
+        required=False,
+        label="Преподаватель (Утро)",
     )
-    groups = forms.ModelMultipleChoiceField(
-        queryset=Group.objects.all(), widget=forms.CheckboxSelectMultiple()
+    evening_teacher = forms.ModelChoiceField(
+        queryset=Teacher.objects.all(),
+        required=False,
+        label="Преподаватель (Вечер)",
+    )
+    DELETE = forms.BooleanField(
+        required=False, initial=False, widget=forms.HiddenInput()
     )
 
-    def clean_time_slot(self):
-        time_slot_id = self.cleaned_data.get("time_slot")
-        try:
-            TimeSlot.objects.get(id=int(time_slot_id))
-        except (ValueError, TypeError, TimeSlot.DoesNotExist):
-            raise forms.ValidationError("Invalid time slot.")
-        return time_slot_id
+

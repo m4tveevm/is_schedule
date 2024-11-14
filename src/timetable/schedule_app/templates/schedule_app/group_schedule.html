@@ -2,6 +2,17 @@
 
 {% block content %}
 <h1>Расписание для группы {{ group.name }}</h1>
+
+<!-- Форма для выбора группы -->
+<form method="get" action="{% url 'group_schedule' %}">
+    <label for="group_select">Выберите группу:</label>
+    <select name="group_id" id="group_select" onchange="this.form.submit()">
+        {% for g in all_groups %}
+            <option value="{{ g.id }}" {% if g.id == group.id %}selected{% endif %}>{{ g.name }}</option>
+        {% endfor %}
+    </select>
+</form>
+
 <table class="table">
     <thead>
         <tr>
@@ -13,8 +24,8 @@
     <tbody>
         {% for lecture in lectures %}
         <tr>
-            <td>{{ lecture.time_slot.schedule_date.date }}</td>
-            <td>{{ lecture.time_slot.start_time }} - {{ lecture.time_slot.end_time }}</td>
+            <td>{{ lecture.schedule_date.date|date:"d.m.Y" }}</td>
+            <td>{{ lecture.get_start_time }} - {{ lecture.get_end_time }}</td>
             <td>{{ lecture.teacher.name }}</td>
         </tr>
         {% empty %}

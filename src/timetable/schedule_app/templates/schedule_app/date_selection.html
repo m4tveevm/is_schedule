@@ -1,19 +1,21 @@
+<!-- date_selection.html -->
+
 {% extends 'base.html' %}
 
 {% block content %}
 <h1>Выбор групп и дат</h1>
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    {{ form.groups }}
+    {{ form.dates }}
     <button type="submit" class="btn btn-primary">Далее</button>
 </form>
 
-
-<link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- Подключение Flatpickr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-
+<!-- Инициализация Flatpickr -->
 <script>
     flatpickr("#date-picker", {
         mode: "multiple",

@@ -2,13 +2,14 @@ from datetime import datetime
 
 from django.forms import formset_factory
 from django.shortcuts import get_object_or_404, redirect, render
+from django.core.exceptions import ValidationError
 
 from .forms import (
     DateSelectionForm,
-    LectureAssignmentForm,
+    TeacherAssignmentForm,
     ScheduleDateFormSet,
 )
-from .models import Group, Lecture, ScheduleDate, Teacher, TimeSlot
+from .models import Group, Lecture, ScheduleDate, Teacher
 
 
 def date_selection_view(request):
@@ -17,21 +18,19 @@ def date_selection_view(request):
         if form.is_valid():
             groups = form.cleaned_data["groups"]
             dates_str = form.cleaned_data["dates"]
-            dates = dates_str.split(",")
-            schedule_dates = []
-            for date_str in dates:
-                date = datetime.strptime(
-                    date_str.strip(), "" "%Y-%m-%d"
-                ).date()
-                schedule_date, created = ScheduleDate.objects.get_or_create(
-                    date=date
-                )
-                schedule_dates.append(schedule_date)
-            request.session["selected_groups"] = [group.id for group in groups]
-            request.session["schedule_date_ids"] = [
-                sd.id for sd in schedule_dates
+            date_list = [
+                date.strip() for date in dates_str.split(",") if date.strip()
             ]
-            return redirect("adjust_lectures")
+            dates = [
+                datetime.strptime(date_str, "%Y-%m-%d").date()
+                for date_str in date_list
+            ]
+            # Сохраняем выбранные группы и даты в сессии
+            request.session["selected_groups"] = [group.id for group in groups]
+            request.session["selected_dates"] = [
+                date.isoformat() for date in dates
+            ]
+            return redirect("assign_teachers")
     else:
         form = DateSelectionForm()
     return render(request, "schedule_app/date_selection.html", {"form": form})
@@ -57,55 +56,94 @@ def adjust_lectures_view(request):
 
 
 def assign_teachers_view(request):
-    schedule_date_ids = request.session.get("schedule_date_ids", [])
     selected_group_ids = request.session.get("selected_groups", [])
-    if not schedule_date_ids or not selected_group_ids:
+    selected_dates = request.session.get("selected_dates", [])
+    if not selected_group_ids or not selected_dates:
         return redirect("date_selection")
-    schedule_dates = ScheduleDate.objects.filter(id__in=schedule_date_ids)
-    time_slots = TimeSlot.objects.filter(
-        schedule_date__in=schedule_dates
-    ).order_by("schedule_date__date", "slot_number")
 
-    LectureFormSet = formset_factory(LectureAssignmentForm, extra=0)
+    groups = Group.objects.filter(id__in=selected_group_ids)
+    dates = [
+        datetime.strptime(date_str, "%Y-%m-%d").date()
+        for date_str in selected_dates
+    ]
+
+    # Определяем форму для каждой даты
+    TeacherAssignmentFormSet = formset_factory(TeacherAssignmentForm, extra=0)
 
     if request.method == "POST":
-        formset = LectureFormSet(request.POST)
+        formset = TeacherAssignmentFormSet(request.POST)
+        has_errors = False
         if formset.is_valid():
+            # Обработка каждой формы
             for form in formset:
-                if not form.cleaned_data:
-                    continue
-                time_slot_id = form.cleaned_data["time_slot"]
-                teacher = form.cleaned_data["teacher"]
-                groups = form.cleaned_data["groups"]
-                lecture = Lecture(
-                    time_slot=TimeSlot.objects.get(id=int(time_slot_id)),
-                    teacher=teacher,
-                )
-                lecture.save()
-                lecture.groups.set(groups)
-            return redirect("schedule_success")
-        else:
-            raise Exception(formset.errors)
-    else:
-        # Инициализация форм
-        initial_data = []
-        for time_slot in time_slots:
-            initial_data.append(
-                {
-                    "time_slot": time_slot.id,
-                    "groups": selected_group_ids,
-                }
-            )
-        print(initial_data)
-        formset = LectureFormSet(initial=initial_data)
+                if form.cleaned_data.get("DELETE"):
+                    continue  # Пропускаем удаленные карточки
+                date = form.cleaned_data["date"]
+                morning_teacher = form.cleaned_data.get("morning_teacher")
+                evening_teacher = form.cleaned_data.get("evening_teacher")
 
-    form_time_slot_pairs = zip(formset.forms, time_slots)
+                schedule_date, created = ScheduleDate.objects.get_or_create(
+                    date=date
+                )
+
+                # Создаем лекции для утреннего и вечернего времени, если преподаватели назначены
+                if morning_teacher:
+                    lecture = Lecture(
+                        schedule_date=schedule_date,
+                        time_slot="morning",
+                        teacher=morning_teacher,
+                    )
+                    try:
+                        lecture.full_clean()
+                        lecture.save()
+                        lecture.groups.set(groups)
+                    except ValidationError as e:
+                        error_message = e.message_dict['teacher']
+                        form.add_error('morning_teacher', error_message)
+                        has_errors = True
+                if evening_teacher:
+                    lecture = Lecture(
+                        schedule_date=schedule_date,
+                        time_slot="evening",
+                        teacher=evening_teacher,
+                    )
+                    try:
+                        lecture.full_clean()
+                        lecture.save()
+                        lecture.groups.set(groups)
+                    except ValidationError as e:
+                        error_message = e.message_dict['teacher']
+                        form.add_error('evening_teacher', error_message)
+                        has_errors = True
+            if has_errors:
+                date_form_pairs = zip(dates, formset.forms)
+                return render(
+                    request,
+                    "schedule_app/assign_teachers.html",
+                    {
+                        "date_form_pairs": date_form_pairs,
+                        "formset": formset,
+                    },
+                )
+            else:
+                return redirect("schedule_success")
+        else:
+            date_form_pairs = zip(dates, formset.forms)
+            return render(request, "schedule_app/assign_teachers.html",
+                          {"date_form_pairs": date_form_pairs,
+                           "formset": formset, }, )
+    initial_data = []
+    for date in dates:
+        initial_data.append({"date": date})
+    formset = TeacherAssignmentFormSet(initial=initial_data)
+
+    date_form_pairs = zip(dates, formset.forms)
     return render(
         request,
         "schedule_app/assign_teachers.html",
         {
+            "date_form_pairs": date_form_pairs,
             "formset": formset,
-            "form_time_slot_pairs": form_time_slot_pairs,
         },
     )
 
@@ -119,27 +157,57 @@ def schedule_view(request):
     )
 
 
-def group_schedule_view(request, group_id):
-    group = get_object_or_404(Group, id=group_id)
+def group_schedule_view(request):
+    all_groups = Group.objects.all()
+    if not all_groups:
+        return render(request, "schedule_app/no_groups.html")
+
+    group_id = request.GET.get('group_id')
+    if group_id:
+        group = get_object_or_404(Group, id=group_id)
+    else:
+        group = Group.objects.first()  # По умолчанию первая группа
+
     lectures = Lecture.objects.filter(groups=group).order_by(
-        "time_slot__schedule_date__date", "time_slot__slot_number"
+        "schedule_date__date", "time_slot"
     )
+
+    all_groups = Group.objects.all()
+
     return render(
         request,
         "schedule_app/group_schedule.html",
-        {"group": group, "lectures": lectures},
+        {
+            "group": group,
+            "lectures": lectures,
+            "all_groups": all_groups,
+        },
     )
 
 
-def teacher_schedule_view(request, teacher_id):
-    teacher = get_object_or_404(Teacher, id=teacher_id)
+def teacher_schedule_view(request):
+    all_teachers = Teacher.objects.all()
+    if not all_teachers:
+        return render(request, "schedule_app/no_teachers.html")
+
+    teacher_id = request.GET.get('teacher_id')
+    if teacher_id:
+        teacher = get_object_or_404(Teacher, id=teacher_id)
+    else:
+        teacher = all_teachers.first()
+
     lectures = Lecture.objects.filter(teacher=teacher).order_by(
-        "time_slot__schedule_date__date", "time_slot__slot_number"
+        "schedule_date__date", "time_slot"
     )
+
     return render(
         request,
         "schedule_app/teacher_schedule.html",
-        {"teacher": teacher, "lectures": lectures},
+        {
+            "teacher": teacher,
+            "lectures": lectures,
+            "all_teachers": all_teachers,
+        },
     )
 
 
