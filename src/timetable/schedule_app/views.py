@@ -8,6 +8,8 @@ from .forms import (
     DateSelectionForm,
     TeacherAssignmentForm,
     ScheduleDateFormSet,
+    GroupForm,
+    TeacherForm
 )
 from .models import Group, Lecture, ScheduleDate, Teacher
 
@@ -79,42 +81,37 @@ def assign_teachers_view(request):
                 if form.cleaned_data.get("DELETE"):
                     continue  # Пропускаем удаленные карточки
                 date = form.cleaned_data["date"]
-                morning_teacher = form.cleaned_data.get("morning_teacher")
-                evening_teacher = form.cleaned_data.get("evening_teacher")
+                time_slot = form.cleaned_data["time_slot"]
+                brigade_teachers = {
+                    1: form.cleaned_data.get("brigade_1_teacher"),
+                    2: form.cleaned_data.get("brigade_2_teacher"),
+                    3: form.cleaned_data.get("brigade_3_teacher"),
+                }
 
                 schedule_date, created = ScheduleDate.objects.get_or_create(
                     date=date
                 )
 
-                # Создаем лекции для утреннего и вечернего времени, если преподаватели назначены
-                if morning_teacher:
-                    lecture = Lecture(
-                        schedule_date=schedule_date,
-                        time_slot="morning",
-                        teacher=morning_teacher,
-                    )
-                    try:
-                        lecture.full_clean()
-                        lecture.save()
-                        lecture.groups.set(groups)
-                    except ValidationError as e:
-                        error_message = e.message_dict['teacher']
-                        form.add_error('morning_teacher', error_message)
-                        has_errors = True
-                if evening_teacher:
-                    lecture = Lecture(
-                        schedule_date=schedule_date,
-                        time_slot="evening",
-                        teacher=evening_teacher,
-                    )
-                    try:
-                        lecture.full_clean()
-                        lecture.save()
-                        lecture.groups.set(groups)
-                    except ValidationError as e:
-                        error_message = e.message_dict['teacher']
-                        form.add_error('evening_teacher', error_message)
-                        has_errors = True
+                for brigade_number, teacher in brigade_teachers.items():
+                    if teacher:
+                        for group in groups:
+                            lecture = Lecture(
+                                schedule_date=schedule_date,
+                                time_slot=time_slot,
+                                group=group,
+                                brigade_number=brigade_number,
+                                teacher=teacher,
+                            )
+                            try:
+                                lecture.full_clean()
+                                lecture.save()
+                            except ValidationError as e:
+                                error_message = e.message_dict.get(
+                                    'teacher') or e.messages
+                                form.add_error(
+                                    f'brigade_{brigade_number}_teacher',
+                                    error_message)
+                                has_errors = True
             if has_errors:
                 date_form_pairs = zip(dates, formset.forms)
                 return render(
@@ -132,10 +129,11 @@ def assign_teachers_view(request):
             return render(request, "schedule_app/assign_teachers.html",
                           {"date_form_pairs": date_form_pairs,
                            "formset": formset, }, )
-    initial_data = []
-    for date in dates:
-        initial_data.append({"date": date})
-    formset = TeacherAssignmentFormSet(initial=initial_data)
+    else:
+        initial_data = []
+        for date in dates:
+            initial_data.append({"date": date})
+        formset = TeacherAssignmentFormSet(initial=initial_data)
 
     date_form_pairs = zip(dates, formset.forms)
     return render(
@@ -168,8 +166,8 @@ def group_schedule_view(request):
     else:
         group = Group.objects.first()  # По умолчанию первая группа
 
-    lectures = Lecture.objects.filter(groups=group).order_by(
-        "schedule_date__date", "time_slot"
+    lectures = Lecture.objects.filter(group=group).order_by(
+        "schedule_date__date", "time_slot", "brigade_number"
     )
 
     all_groups = Group.objects.all()
@@ -197,7 +195,7 @@ def teacher_schedule_view(request):
         teacher = all_teachers.first()
 
     lectures = Lecture.objects.filter(teacher=teacher).order_by(
-        "schedule_date__date", "time_slot"
+        "schedule_date__date", "time_slot", "group__name", "brigade_number"
     )
 
     return render(
@@ -213,3 +211,85 @@ def teacher_schedule_view(request):
 
 def schedule_success_view(request):
     return render(request, "schedule_app/schedule_success.html")
+
+
+def group_list_view(request):
+    groups = Group.objects.all()
+    return render(request, 'schedule_app/group_list.html', {'groups': groups})
+
+
+def group_create_view(request):
+    if request.method == 'POST':
+        form = GroupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('group_list')
+    else:
+        form = GroupForm()
+    return render(request, 'schedule_app/group_form.html',
+                  {'form': form, 'action': 'Добавить группу'})
+
+
+def group_update_view(request, id):
+    group = get_object_or_404(Group, id=id)
+    if request.method == 'POST':
+        form = GroupForm(request.POST, instance=group)
+        if form.is_valid():
+            form.save()
+            return redirect('group_list')
+    else:
+        form = GroupForm(instance=group)
+    return render(request, 'schedule_app/group_form.html',
+                  {'form': form, 'action': 'Редактировать группу'})
+
+
+def group_delete_view(request, id):
+    group = get_object_or_404(Group, id=id)
+    if request.method == 'POST':
+        group.delete()
+        return redirect('group_list')
+    return render(request, 'schedule_app/group_confirm_delete.html',
+                  {'group': group})
+
+
+def teacher_list_view(request):
+    teachers = Teacher.objects.all()
+    return render(request, 'schedule_app/teacher_list.html',
+                  {'teachers': teachers})
+
+
+def teacher_create_view(request):
+    if request.method == 'POST':
+        form = TeacherForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('teacher_list')
+    else:
+        form = TeacherForm()
+    return render(request, 'schedule_app/teacher_form.html',
+                  {'form': form, 'action': 'Добавить преподавателя'})
+
+
+def teacher_update_view(request, id):
+    teacher = get_object_or_404(Teacher, id=id)
+    if request.method == 'POST':
+        form = TeacherForm(request.POST, instance=teacher)
+        if form.is_valid():
+            form.save()
+            return redirect('teacher_list')
+    else:
+        form = TeacherForm(instance=teacher)
+    return render(request, 'schedule_app/teacher_form.html',
+                  {'form': form, 'action': 'Редактировать преподавателя'})
+
+
+def teacher_delete_view(request, id):
+    teacher = get_object_or_404(Teacher, id=id)
+    if request.method == 'POST':
+        teacher.delete()
+        return redirect('teacher_list')
+    return render(request, 'schedule_app/teacher_confirm_delete.html',
+                  {'teacher': teacher})
+
+def home_view(request):
+    return render(request, 'schedule_app/home.html')

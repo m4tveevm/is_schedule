@@ -4,7 +4,7 @@ from django import forms
 from django.forms import modelformset_factory
 from django.utils import timezone
 
-from .models import Group, ScheduleDate, Teacher
+from .models import Group, ScheduleDate, Teacher, Lecture
 
 
 # CRUD препод.
@@ -47,6 +47,7 @@ class ScheduleDateForm(forms.ModelForm):
             "date": forms.HiddenInput(),
         }
 
+
 ScheduleDateFormSet = modelformset_factory(
     ScheduleDate, form=ScheduleDateForm, extra=0
 )
@@ -54,18 +55,44 @@ ScheduleDateFormSet = modelformset_factory(
 
 class TeacherAssignmentForm(forms.Form):
     date = forms.DateField(widget=forms.HiddenInput())
-    morning_teacher = forms.ModelChoiceField(
-        queryset=Teacher.objects.all(),
-        required=False,
-        label="Преподаватель (Утро)",
+    time_slot = forms.ChoiceField(
+        choices=Lecture.TIME_SLOT_CHOICES,
+        label="Время проведения (Утро/Вечер)",
+        widget=forms.RadioSelect()
     )
-    evening_teacher = forms.ModelChoiceField(
+    brigade_1_teacher = forms.ModelChoiceField(
         queryset=Teacher.objects.all(),
         required=False,
-        label="Преподаватель (Вечер)",
+        label="Преподаватель для бригады 1",
+    )
+    brigade_2_teacher = forms.ModelChoiceField(
+        queryset=Teacher.objects.all(),
+        required=False,
+        label="Преподаватель для бригады 2",
+    )
+    brigade_3_teacher = forms.ModelChoiceField(
+        queryset=Teacher.objects.all(),
+        required=False,
+        label="Преподаватель для бригады 3",
     )
     DELETE = forms.BooleanField(
         required=False, initial=False, widget=forms.HiddenInput()
     )
 
 
+class GroupForm(forms.ModelForm):
+    class Meta:
+        model = Group
+        fields = ['name']
+        labels = {
+            'name': 'Название группы',
+        }
+
+
+class TeacherForm(forms.ModelForm):
+    class Meta:
+        model = Teacher
+        fields = ['name']
+        labels = {
+            'name': 'Имя преподавателя',
+        }
