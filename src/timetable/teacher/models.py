@@ -1,7 +1,5 @@
 from django.db import models
 
-from src.timetable.subject.models import Subject, LessonType
-
 
 class Teacher(models.Model):
     MAIN = "Основной"
@@ -10,34 +8,33 @@ class Teacher(models.Model):
         MAIN: "Основное место работы",
         CONTRIBUTOR: "Совместитель",
     }
+
     surname = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     lastname = models.CharField(max_length=100)
-    shortname = models.CharField(
-        max_length=100,
-        blank=True,
+    shortname = models.CharField(max_length=100, blank=True)
+    employerType = models.CharField(
+        max_length=20, choices=EMPLOYERTYPE.items(), default=CONTRIBUTOR
     )
-    employerType = models.CharField(choices=EMPLOYERTYPE, default=CONTRIBUTOR)
+
+    def save(self, *args, **kwargs):
+        if not self.shortname:
+            self.shortname = (
+                f"{self.surname} {self.name[0]}. {self.lastname[0]}."
+            )
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        if self.shortname:
-            return self.shortname
-        return f"{str(self.surname)} {str(self.name).upper()[0]}. {str(self.lastname).upper()[0]}"
+        return self.shortname
 
 
-
-class TeacherProfile(models.Model):
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.teacher} - {self.subject}"
-
-class TeacherEduAmount(models.Model):
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    lesson_type = models.ForeignKey(
-        LessonType,
+class TeacherUnavailableDates(models.Model):
+    teacher = models.OneToOneField(
+        Teacher,
         on_delete=models.CASCADE,
-        related_name='teacher_edu_amount_as_lesstyper'
+        related_name="teacher_unavailable_dates",
     )
-    amount = models.IntegerField(default=0)
+    dates = models.JSONField(default=list, blank=True)
+
+    def __str__(self):
+        return f"{self.teacher} недоступен в даты: {self.dates}"

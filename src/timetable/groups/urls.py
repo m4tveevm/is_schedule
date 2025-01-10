@@ -1,10 +1,14 @@
 from rest_framework.routers import DefaultRouter
 
-from .views import GroupViewSet
-
-app_name = "groups"
+from .views import GroupAvailableDatesViewSet, GroupViewSet
 
 router = DefaultRouter()
-router.register(r"groups", GroupViewSet)
 
-urlpatterns = [] + router.urls
+router.register(r"groups", GroupViewSet, basename="group")
+router.register(
+    r"group_available_dates",
+    GroupAvailableDatesViewSet,
+    basename="group_available",
+)
+
+urlpatterns = router.urls
