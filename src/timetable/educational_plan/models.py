@@ -1,6 +1,6 @@
 from django.db import models
 
-from subject.models import LessonType, Subject
+from subject.models import Subject
 
 
 class EducationalPlan(models.Model):
@@ -14,15 +14,29 @@ class EducationalPlan(models.Model):
 
 
 class EducationalPlanEntry(models.Model):
+    LESSON_TYPE_UP = "УП"
+    LESSON_TYPE_KL = "КЛ"
+    LESSON_TYPE_DK = "ДК"
+
+    LESSON_TYPE_CHOICES = [
+        (LESSON_TYPE_UP, "Учебная практика"),
+        (LESSON_TYPE_KL, "Клиническая практика"),
+        (LESSON_TYPE_DK, "Доклиническая практика"),
+    ]
     educational_plan = models.ForeignKey(
-        EducationalPlan, related_name="entries", on_delete=models.CASCADE
+        EducationalPlan,
+        on_delete=models.CASCADE,
+        related_name="entries"
     )
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    lesson_type = models.ForeignKey(LessonType, on_delete=models.CASCADE)
-    hours = models.PositiveIntegerField(default=0)
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.CASCADE
+    )
+    lesson_type = models.CharField(
+        max_length=2,
+        choices=LESSON_TYPE_CHOICES
+    )
+    hours = models.IntegerField(default=0)
 
     def __str__(self):
-        return (
-            f"{self.subject.name} ({self.lesson_type.short_name}) -"
-            f" {self.hours} ч"
-        )
+        return f"{self.subject} – {self.lesson_type} – {self.hours} ч."

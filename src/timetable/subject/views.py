@@ -1,7 +1,7 @@
 from rest_framework import filters, viewsets
 
-from .models import LessonType, Subject
-from .serializers import LessonTypeSerializer, SubjectSerializer
+from .models import Subject
+from .serializers import SubjectSerializer
 
 
 class SubjectViewSet(viewsets.ModelViewSet):
@@ -9,8 +9,3 @@ class SubjectViewSet(viewsets.ModelViewSet):
     serializer_class = SubjectSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["name", "short_name"]
-
-
-class LessonTypeViewSet(viewsets.ModelViewSet):
-    queryset = LessonType.objects.all()
-    serializer_class = LessonTypeSerializer

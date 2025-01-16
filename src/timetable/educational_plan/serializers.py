@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from subject.models import LessonType, Subject
+from subject.models import Subject
 
 from .models import EducationalPlan, EducationalPlanEntry
 
@@ -29,7 +29,9 @@ class EducationalPlanSerializer(serializers.ModelSerializer):
     practice_start_date = serializers.DateField(
         required=False, allow_null=True
     )
-    practice_end_date = serializers.DateField(required=False, allow_null=True)
+    practice_end_date = serializers.DateField(
+        required=False, allow_null=True
+    )
 
     class Meta:
         model = EducationalPlan
@@ -53,7 +55,7 @@ class EducationalPlanSerializer(serializers.ModelSerializer):
                     "КЛ": 0,
                     "ДК": 0,
                 }
-            lt_name = entry.lesson_type.short_name
+            lt_name = entry.lesson_type
             if lt_name in grouped[subj_id]:
                 grouped[subj_id][lt_name] = entry.hours
         return list(grouped.values())
@@ -101,7 +103,8 @@ class EducationalPlanSerializer(serializers.ModelSerializer):
         EducationalPlanEntry.objects.filter(
             educational_plan=educational_plan
         ).delete()
-        lesson_types = {lt.short_name: lt for lt in LessonType.objects.all()}
+        lesson_type_keys = ["УП", "КЛ", "ДК"]
+
         for entry in entries_data:
             subject_id = entry.get("subject")
             if not subject_id:
@@ -110,12 +113,12 @@ class EducationalPlanSerializer(serializers.ModelSerializer):
                 subject = Subject.objects.get(id=subject_id)
             except Subject.DoesNotExist:
                 continue
-            for lt_name, lesson_type_obj in lesson_types.items():
+            for lt_name in lesson_type_keys:
                 hours = entry.get(lt_name, 0)
                 if hours:
                     EducationalPlanEntry.objects.create(
                         educational_plan=educational_plan,
                         subject=subject,
-                        lesson_type=lesson_type_obj,
+                        lesson_type=lt_name,
                         hours=hours,
                     )
