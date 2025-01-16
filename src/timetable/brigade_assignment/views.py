@@ -86,20 +86,7 @@ class BrigadeAssignmentViewSet(viewsets.ModelViewSet):
         return Response(read_serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
-        composite_id = kwargs.get("pk")
-        group_plan_id, plan_entry_id, brigade_number = composite_id.split("-")
-
-        try:
-            assignment = BrigadeAssignment.objects.get(
-                group_educational_plan_id=group_plan_id,
-                educational_plan_entry_id=plan_entry_id,
-                brigade_number=brigade_number,
-            )
-        except BrigadeAssignment.DoesNotExist:
-            return Response(
-                {"error": "Assignment not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        assignment = self.get_object()
 
         serializer = self.get_serializer(assignment, data=request.data)
         serializer.is_valid(raise_exception=True)
