@@ -28,12 +28,12 @@ class TeacherProfileAmount(models.Model):
 
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
 
-    lesson_type = models.CharField(
-        max_length=2,
-        choices=LESSON_TYPE_CHOICES
-    )
+    lesson_type = models.CharField(max_length=2, choices=LESSON_TYPE_CHOICES)
 
     amount = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.teacher} - {self.get_lesson_type_display()} - {self.amount}"
+        return (
+            f"{self.teacher} - "
+            f"{self.get_lesson_type_display()} - {self.amount}"
+        )

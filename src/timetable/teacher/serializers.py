@@ -4,7 +4,6 @@ from .models import Teacher, TeacherUnavailableDates
 
 
 class TeacherSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Teacher
         fields = [
@@ -24,7 +23,6 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 
 class TeacherUnavailableDatesSerializer(serializers.ModelSerializer):
-
     teacher_id = serializers.PrimaryKeyRelatedField(
         queryset=Teacher.objects.all(), source="teacher", write_only=True
     )

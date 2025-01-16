@@ -33,12 +33,10 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
 
 class TeacherProfileAmountSerializer(serializers.ModelSerializer):
     teacher_name = serializers.CharField(
-        source="teacher.shortname",
-        read_only=True
+        source="teacher.shortname", read_only=True
     )
     lesson_type_name = serializers.CharField(
-        source="get_lesson_type_display",
-        read_only=True
+        source="get_lesson_type_display", read_only=True
     )
 
     class Meta:

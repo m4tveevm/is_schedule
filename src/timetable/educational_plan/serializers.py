@@ -29,9 +29,7 @@ class EducationalPlanSerializer(serializers.ModelSerializer):
     practice_start_date = serializers.DateField(
         required=False, allow_null=True
     )
-    practice_end_date = serializers.DateField(
-        required=False, allow_null=True
-    )
+    practice_end_date = serializers.DateField(required=False, allow_null=True)
 
     class Meta:
         model = EducationalPlan

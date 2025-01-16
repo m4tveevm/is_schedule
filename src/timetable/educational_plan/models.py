@@ -24,18 +24,10 @@ class EducationalPlanEntry(models.Model):
         (LESSON_TYPE_DK, "Доклиническая практика"),
     ]
     educational_plan = models.ForeignKey(
-        EducationalPlan,
-        on_delete=models.CASCADE,
-        related_name="entries"
+        EducationalPlan, on_delete=models.CASCADE, related_name="entries"
     )
-    subject = models.ForeignKey(
-        Subject,
-        on_delete=models.CASCADE
-    )
-    lesson_type = models.CharField(
-        max_length=2,
-        choices=LESSON_TYPE_CHOICES
-    )
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    lesson_type = models.CharField(max_length=2, choices=LESSON_TYPE_CHOICES)
     hours = models.IntegerField(default=0)
 
     def __str__(self):
