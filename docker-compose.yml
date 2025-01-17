@@ -29,11 +29,11 @@ services:
     volumes:
       - ./src:/app
     environment:
-      - SECRET_KEY="django-insecure-=yg!hy^#!dys)y9j5s#an0ydb5iszcp8%m3or@qbis01s29@d"
+      - SECRET_KEY=/run/secrets/django_secret
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
-      - DJANGO_DB_PASSWORD="ketfew-fIqrev-kutjo4"
+      - DJANGO_DB_PASSWORD=/run/secrets/pg_password
     depends_on:
       - db
     networks:
@@ -73,7 +73,7 @@ services:
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD="ketfew-fIqrev-kutjo4"
+      - POSTGRES_PASSWORD=/run/secrets/pg_password
     networks:
       - app_network
     deploy:
