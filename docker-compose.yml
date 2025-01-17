@@ -23,11 +23,7 @@ services:
       - app_network
 
   backend:
-    build:
-      context: ./src
-      dockerfile: Dockerfile
-    volumes:
-      - ./src:/app
+    image: ghcr.io/m4tveevm/backend:latest
     environment:
       - SECRET_KEY=/run/secrets/django_secret
       - DJANGO_DB_HOST=db
@@ -49,12 +45,7 @@ services:
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    image: ghcr.io/m4tveevm/frontend:latest
     environment:
       - REACT_APP_BACKEND_URL=http://localhost/api/
     labels:
