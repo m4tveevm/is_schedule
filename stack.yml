@@ -43,7 +43,7 @@ services:
         - "traefik.http.routers.traefik-dashboard.tls=true"
         - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflareResolver"
         - "traefik.http.routers.traefik-dashboard.service=api@internal"
-        - "traefik.http.routers.traefik-dashboard.middlewares=auth"
+#        - "traefik.http.routers.traefik-dashboard.middlewares=auth"
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
