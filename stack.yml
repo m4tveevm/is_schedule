@@ -44,6 +44,7 @@ services:
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
+      - POSTGRES_PASSWORD=/run/secrets/pg_password
     networks:
       - is_schedule_network
     secrets:

@@ -21,19 +21,11 @@ from dotenv import load_dotenv
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-def get_secret(secret_name):
-    try:
-        return open(f"/run/secrets/{secret_name}").read().strip()
-    except FileNotFoundError:
-        return os.getenv(secret_name, "")
-
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_secret("django_secret", "fallback_secret_key")
+SECRET_KEY = os.getenv("django_secret", "fallback_secret_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = get_secret("DEBUG", False) == "True"
+DEBUG = os.getenv("DEBUG", False) == "True"
 
 INTERNAL_IPS = [
     "127.0.0.1",
@@ -102,12 +94,12 @@ WSGI_APPLICATION = "timetable.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DJANGO_DB_NAME"),
-        "USER": os.getenv("DJANGO_DB_USER"),
-        "PASSWORD": get_secret("pg_password"),
-        "HOST": os.getenv("DJANGO_DB_HOST"),
+        "NAME": os.getenv("DJANGO_DB_NAME", "postgres"),
+        "USER": os.getenv("DJANGO_DB_USER", "postgres"),
+        "PASSWORD": os.getenv("DJANGO_DB_PASSWORD"),
+        "HOST": os.getenv("DJANGO_DB_HOST", "db"),
         "PORT": "5432",
-    },
+    }
     # "default": {
     #     "ENGINE": "django.db.backends.sqlite3",
     #     "NAME": BASE_DIR / "temp.sqlite3",
@@ -120,19 +112,19 @@ DATABASES = {
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation."
-        "UserAttributeSimilarityValidator",
+                "UserAttributeSimilarityValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation."
-        "MinimumLengthValidator",
+                "MinimumLengthValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation."
-        "CommonPasswordValidator",
+                "CommonPasswordValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation."
-        "NumericPasswordValidator",
+                "NumericPasswordValidator",
     },
 ]
 
