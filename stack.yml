@@ -1,7 +1,6 @@
 services:
   traefik:
     image: traefik:v2.10
-    container_name: traefik
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -27,8 +26,8 @@ services:
 
   migrations:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
-    depends_on:
-      - db
+    secrets:
+      - pg_password
     environment:
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
@@ -40,7 +39,6 @@ services:
         python timetable/manage.py migrate &&
         python timetable/manage.py collectstatic --noinput
       "
-    restart: "no"
     deploy:
       replicas: 0
     networks:
@@ -48,6 +46,9 @@ services:
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
+    secrets:
+      - pg_password
+      - SECRET_KEY
     environment:
       - SECRET_KEY=/run/secrets/django_secret
       - DJANGO_DB_HOST=db
@@ -61,8 +62,6 @@ services:
       update_config:
         parallelism: 1
         delay: 10s
-    depends_on:
-      - db
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
@@ -87,6 +86,8 @@ services:
     image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    secrets:
+      - pg_password
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
