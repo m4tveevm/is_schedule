@@ -112,7 +112,7 @@ jobs:
 
 
             docker run --rm \
-              --network is_schedule_stack_is_schedule_network \
+              --network is_schedule_app_network \
               -e DJANGO_DB_HOST=db \
               -e DJANGO_DB_NAME=postgres \
               -e DJANGO_DB_USER=postgres \
