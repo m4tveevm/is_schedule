@@ -26,8 +26,6 @@ services:
 
   migrations:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
-    secrets:
-      - pg_password
     environment:
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
@@ -46,9 +44,6 @@ services:
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
-    secrets:
-      - pg_password
-      - SECRET_KEY
     environment:
       - SECRET_KEY=/run/secrets/django_secret
       - DJANGO_DB_HOST=db
@@ -86,8 +81,6 @@ services:
     image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    secrets:
-      - pg_password
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
@@ -104,3 +97,14 @@ networks:
 
 volumes:
   postgres_data:
+
+
+secrets:
+  pg_password:
+    external: true
+  django_secret:
+    external: true
+  cloudflare.crt:
+    external: true
+  cloudflare.key:
+    external: true
