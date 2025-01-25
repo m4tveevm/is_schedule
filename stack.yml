@@ -104,6 +104,7 @@ volumes:
 secrets:
   pg_password:
     external: true
+    name: pg_password
   django_secret:
     external: true
   cloudflare.crt:
