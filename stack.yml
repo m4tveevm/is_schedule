@@ -93,6 +93,7 @@ services:
 
 networks:
   is_schedule_network:
+    external: true
     driver: overlay
 
 volumes:
