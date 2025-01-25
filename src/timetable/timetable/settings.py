@@ -22,12 +22,11 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-def get_secret(secret_name, default=None):
-    secret_path = f"/run/secrets/{secret_name}"
-    if os.path.exists(secret_path):
-        with open(secret_path, "r") as secret_file:
-            return secret_file.read().strip()
-    return os.getenv(secret_name, default)
+def get_secret(secret_name):
+    try:
+        return open(f"/run/secrets/{secret_name}").read().strip()
+    except FileNotFoundError:
+        return os.getenv(secret_name, "")
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -103,10 +102,10 @@ WSGI_APPLICATION = "timetable.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": get_secret("DJANGO_DB_NAME", "postgres"),
-        "USER": get_secret("DJANGO_DB_USER", "postgres"),
-        "PASSWORD": get_secret("pg_password", ""),
-        "HOST": get_secret("DJANGO_DB_HOST", "db"),
+        "NAME": os.getenv("DJANGO_DB_NAME"),
+        "USER": os.getenv("DJANGO_DB_USER"),
+        "PASSWORD": get_secret("pg_password"),
+        "HOST": os.getenv("DJANGO_DB_HOST"),
         "PORT": "5432",
     },
     # "default": {

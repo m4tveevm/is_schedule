@@ -59,6 +59,11 @@ services:
         - "traefik.http.routers.backend.tls=true"
         - "traefik.http.routers.backend.tls.certresolver=cloudflareResolver"
         - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      secrets:
+        - source: pg_password
+          target: /run/secrets/pg_password
+        - source: django_secret
+          target: /run/secrets/django_secret
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
