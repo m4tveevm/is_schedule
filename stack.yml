@@ -95,6 +95,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_LISTEN_ADDRESSES=*
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
