@@ -12,12 +12,6 @@ services:
       - "--certificatesresolvers.cloudflareResolver.acme.dnsChallenge.provider=cloudflare"
       - "--certificatesresolvers.cloudflareResolver.acme.email=m4tveevm@icloud.com"
       - "--certificatesresolvers.cloudflareResolver.acme.storage=/acme.json"
-      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
-      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
-      - "traefik.http.routers.traefik-dashboard.tls=true"
-      - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflareResolver"
-      - "traefik.http.routers.traefik-dashboard.service=api@internal"
-      - "traefik.http.routers.traefik-dashboard.middlewares=auth"
     environment:
       - CF_API_EMAIL=m4tveevm@icloud.com
       - CF_API_KEY=/run/secrets/cloudflare_api_token
@@ -34,6 +28,7 @@ services:
     networks:
       - is_schedule_network
     deploy:
+      replicas: 1
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.is_schedule_stack.rule=Host(`is-schedule.updspace.com`)"
@@ -43,6 +38,12 @@ services:
         - "traefik.http.routers.is_schedule_stack.tls.domains[0].main=is-schedule.updspace.com"
         - "traefik.http.routers.is_schedule_stack.tls.domains[0].sans=*.is-schedule.updspace.com"
         - "traefik.http.routers.is_schedule_stack.tls.options.default.minVersion=VersionTLS12"
+        - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
+        - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+        - "traefik.http.routers.traefik-dashboard.tls=true"
+        - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflareResolver"
+        - "traefik.http.routers.traefik-dashboard.service=api@internal"
+        - "traefik.http.routers.traefik-dashboard.middlewares=auth"
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
