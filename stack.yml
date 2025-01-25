@@ -30,17 +30,14 @@ services:
       - is_schedule_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.is_schedule_stack.rule=Host(`is-schedule.updspace.com`)"
+      - "traefik.http.routers.is_schedule_stack.rule=Host(`https://is_schedule.updspace.com`)"
       - "traefik.http.routers.is_schedule_stack.entrypoints=websecure"
       - "traefik.http.routers.is_schedule_stack.tls=true"
       - "traefik.http.routers.is_schedule_stack.tls.certresolver=cloudflareResolver"
-      - "traefik.http.routers.is_schedule_stack.tls.domains[0].main=is-schedule.updspace.com"
-      - "traefik.http.routers.is_schedule_stack.tls.domains[0].sans=*.is-schedule.updspace.com"
+      - "traefik.http.routers.is_schedule_stack.tls.domains[0].main=updspace.com"
+      - "traefik.http.routers.is_schedule_stack.tls.domains[0].sans=*.updspace.com"
       - "traefik.http.routers.is_schedule_stack.tls.options.default.minVersion=VersionTLS12"
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
-      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
-      - "traefik.http.routers.traefik-dashboard.tls=true"
-      - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflareResolver"
       - "traefik.http.routers.traefik-dashboard.service=api@internal"
     deploy:
       replicas: 1
@@ -59,6 +56,7 @@ services:
       - source: django_secret
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
     deploy:
@@ -73,9 +71,10 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls=true"
-      - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
+#      - "traefik.http.routers.frontend.tls=true"
+#      - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     deploy:
       replicas: 2
