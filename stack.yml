@@ -30,16 +30,16 @@ services:
       - is_schedule_network
     labels:
       - "traefik.enable=true"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
       - "traefik.http.routers.is_schedule_stack.rule=Host(`is-schedule.updspace.com`)"
       - "traefik.http.routers.is_schedule_stack.entrypoints=websecure"
       - "traefik.http.routers.is_schedule_stack.tls=true"
       - "traefik.http.routers.is_schedule_stack.tls.certresolver=cloudflareResolver"
       - "traefik.http.routers.is_schedule_stack.tls.domains[0].main=is-schedule.updspace.com"
       - "traefik.http.routers.is_schedule_stack.tls.domains[0].sans=*.is-schedule.updspace.com"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
-      - "traefik.http.routers.http-catchall.entrypoints=web"
-      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
       - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
       - "traefik.http.routers.traefik-dashboard.tls=true"
@@ -63,8 +63,8 @@ services:
       - source: pg_password
         target: POSTGRES_PASSWORD
       - django_secret
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
@@ -79,8 +79,8 @@ services:
       - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
     networks:
       - is_schedule_network
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
