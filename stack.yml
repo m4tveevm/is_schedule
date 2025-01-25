@@ -20,7 +20,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./logs:/logs
-      - /path/on/host/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
+      - /home/deploy/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
     networks:
       - is_schedule_network
 
@@ -96,10 +96,8 @@ networks:
     external: true
     name: is_schedule_network
 
-
 volumes:
   postgres_data:
-
 
 secrets:
   pg_password:
