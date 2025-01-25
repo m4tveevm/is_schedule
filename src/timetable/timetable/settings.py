@@ -21,8 +21,18 @@ from dotenv import load_dotenv
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def get_secret(secret_name, default=""):
+    secret_path = f"/run/secrets/{secret_name}"
+    try:
+        with open(secret_path, "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return default
+
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("django_secret", "fallback_secret_key")
+SECRET_KEY = get_secret("django_secret", "fallback_secret_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", False) == "True"
@@ -101,7 +111,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("POSTGRES_DB", "postgres"),
         "USER": os.getenv("POSTGRES_USER", "postgres"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
+        "PASSWORD": get_secret("pg_password", ""),
         "HOST": os.getenv(
             "POSTGRES_HOST", "db"
         ),  # Assuming your DB service is named 'db'
