@@ -2,9 +2,13 @@ name: CI-CD Pipeline
 
 on:
   push:
+<<<<<<< HEAD
     branches:
       - "master"
   workflow_dispatch:
+=======
+    branches: ["master"]
+>>>>>>> master
 
 jobs:
   build-and-test:
@@ -51,6 +55,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+<<<<<<< HEAD
       - name: Build and Tag Backend Image
         run: |
           BACKEND_IMAGE=ghcr.io/${{ github.repository_owner }}/is_schedule-backend
@@ -62,6 +67,23 @@ jobs:
           BACKEND_IMAGE=ghcr.io/${{ github.repository_owner }}/is_schedule-backend
           docker push $BACKEND_IMAGE:latest
           docker push $BACKEND_IMAGE:${{ github.run_number }}
+=======
+      - name: Build and push backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src
+          file: ./src/Dockerfile
+          tags: ghcr.io/${{ github.repository_owner }}/backend:latest
+          push: true
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          tags: ghcr.io/${{ github.repository_owner }}/frontend:latest
+          push: true
+>>>>>>> master
 
       - name: Build and Tag Frontend Image
         run: |
@@ -86,6 +108,7 @@ jobs:
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
           script: |
+<<<<<<< HEAD
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-backend:latest
@@ -107,3 +130,9 @@ jobs:
 
             # docker-compose -f /home/deploy_user/docker-compose.yml pull
             # docker-compose -f /home/deploy_user/docker-compose.yml up -d --remove-orphans
+=======
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+            docker pull ghcr.io/${{ github.repository_owner }}/backend:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/frontend:latest
+            docker stack deploy -c /home/deploy_user/stack.yml mystack
+>>>>>>> master
