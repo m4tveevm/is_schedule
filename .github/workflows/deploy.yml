@@ -90,7 +90,9 @@ jobs:
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
           source: "./stack.yml"
-          target: "/home/deploy_user/stack.yml"
+          target: "/home/${{ secrets.VDS_USER }}"
+          overwrite: true
+          strip_components: 0
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
