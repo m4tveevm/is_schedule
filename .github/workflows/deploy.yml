@@ -103,13 +103,12 @@ jobs:
           script: |
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            docker pull ghcr.io/.../is_schedule-backend:latest
-            docker pull ghcr.io/.../is_schedule-frontend:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-backend:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-frontend:latest
 
             docker network ls
 
             docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack.yml is_schedule_stack
-
 
             docker run --rm \
               --network is_schedule_app_network \
@@ -117,5 +116,5 @@ jobs:
               -e DJANGO_DB_NAME=postgres \
               -e DJANGO_DB_USER=postgres \
               -e DJANGO_DB_PASSWORD=${{ secrets.PG_PASSWORD }} \
-              ghcr.io/.../is_schedule-backend:latest \
+              ghcr.io/${{ github.repository_owner }}/is_schedule-backend:latest \
               sh -c "python timetable/manage.py migrate && python timetable/manage.py collectstatic --noinput"
