@@ -4,14 +4,14 @@ services:
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
-      - "--providers.file.filename=/etc/traefik/dynamic_conf.yaml"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--accesslog=true"
       - "--accesslog.filepath=/logs/access.log"
       - "--accesslog.filters.statusCodes=400-499"
-      - "experimental.plugins.traefikkeycloak.modulename=github.com/paladium/traefikkeycloak"
-      - "experimental.plugins.traefikkeycloak.version=v1.11"
+      - "--certificatesresolvers.cloudflareResolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.cloudflareResolver.acme.email=your-email@example.com"
+      - "--certificatesresolvers.cloudflareResolver.acme.storage=/acme.json"
 
     ports:
       - "80:80"
@@ -20,62 +20,61 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./logs:/logs
-      - /home/deploy/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
+    secrets:
+      - cloudflare.crt
+      - cloudflare.key
     networks:
       - is_schedule_network
-
-  migrations:
-    image: ghcr.io/m4tveevm/is_schedule-backend:latest
-    environment:
-      - DJANGO_DB_HOST=db
-      - DJANGO_DB_NAME=postgres
-      - DJANGO_DB_USER=postgres
-      - DJANGO_DB_PASSWORD=/run/secrets/pg_password
-    command: >
-      sh -c "
-        echo 'Running migrations...' &&
-        python timetable/manage.py migrate &&
-        python timetable/manage.py collectstatic --noinput
-      "
     deploy:
-      replicas: 0
-    networks:
-      - is_schedule_network
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.is_schedule_stack.rule=Host(`is-schedule.updspace.com`)"
+        - "traefik.http.routers.is_schedule_stack.entrypoints=websecure"
+        - "traefik.http.routers.is_schedule_stack.tls=true"
+        - "traefik.http.routers.is_schedule_stack.tls.certresolver=cloudflareResolver"
+        - "traefik.http.routers.is_schedule_stack.tls.domains[0].main=is-schedule.updspace.com"
+        - "traefik.http.routers.is_schedule_stack.tls.domains[0].sans=*.is-schedule.updspace.com"
+        - "traefik.http.routers.is_schedule_stack.tls.options.default.minVersion=VersionTLS12"
+        - "traefik.http.routers.is_schedule_stack.tls.stores.default.defaultCertificate.certFile=/run/secrets/cloudflare.crt"
+        - "traefik.http.routers.is_schedule_stack.tls.stores.default.defaultCertificate.keyFile=/run/secrets/cloudflare.key"
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
     environment:
-      - SECRET_KEY=/run/secrets/django_secret
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
       - DJANGO_DB_PASSWORD=/run/secrets/pg_password
+    secrets:
+      - pg_password
+      - django_secret
     networks:
       - is_schedule_network
     deploy:
       replicas: 2
-      update_config:
-        parallelism: 1
-        delay: 10s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      - "traefik.http.routers.backend.tls=true"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
+        - "traefik.http.routers.backend.entrypoints=websecure"
+        - "traefik.http.routers.backend.tls=true"
+        - "traefik.http.routers.backend.tls.certresolver=cloudflareResolver"
+        - "traefik.http.services.backend.loadbalancer.server.port=8000"
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
     environment:
       - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
-      - "traefik.http.routers.frontend.tls=true"
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
     networks:
       - is_schedule_network
     deploy:
       replicas: 2
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
+        - "traefik.http.routers.frontend.entrypoints=websecure"
+        - "traefik.http.routers.frontend.tls=true"
+        - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
+        - "traefik.http.services.frontend.loadbalancer.server.port=80"
 
   db:
     image: postgres:15

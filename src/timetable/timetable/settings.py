@@ -21,11 +21,18 @@ from dotenv import load_dotenv
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+def get_secret(secret_name, default=None):
+    secret_path = f"/run/secrets/{secret_name}"
+    if os.path.exists(secret_path):
+        with open(secret_path, "r") as secret_file:
+            return secret_file.read().strip()
+    return os.getenv(secret_name, default)
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = get_secret("django_secret", "fallback_secret_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = get_secret("DEBUG", False) == "True"
 
 INTERNAL_IPS = [
     "127.0.0.1",
@@ -94,10 +101,10 @@ WSGI_APPLICATION = "timetable.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DJANGO_DB_NAME"),
-        "USER": os.getenv("DJANGO_DB_USER"),
-        "PASSWORD": os.getenv("DJANGO_DB_PASSWORD"),
-        "HOST": os.getenv("DJANGO_DB_HOST"),
+        "NAME": get_secret("DJANGO_DB_NAME", "postgres"),
+        "USER": get_secret("DJANGO_DB_USER", "postgres"),
+        "PASSWORD": get_secret("pg_password", ""),
+        "HOST": get_secret("DJANGO_DB_HOST", "db"),
         "PORT": "5432",
     },
     # "default": {
