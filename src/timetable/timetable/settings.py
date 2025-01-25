@@ -21,12 +21,14 @@ from dotenv import load_dotenv
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 def get_secret(secret_name, default=None):
     secret_path = f"/run/secrets/{secret_name}"
     if os.path.exists(secret_path):
         with open(secret_path, "r") as secret_file:
             return secret_file.read().strip()
     return os.getenv(secret_name, default)
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_secret("django_secret", "fallback_secret_key")
