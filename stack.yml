@@ -44,9 +44,6 @@ services:
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
-    secrets:
-      - pg_password
-      - django_secret
     networks:
       - is_schedule_network
     deploy:
@@ -59,10 +56,8 @@ services:
         - "traefik.http.routers.backend.tls.certresolver=cloudflareResolver"
         - "traefik.http.services.backend.loadbalancer.server.port=8000"
       secrets:
-        - source: pg_password
-          target: pg_password
-        - source: django_secret
-          target: django_secret
+        - pg_password
+        - django_secret
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
@@ -105,7 +100,6 @@ volumes:
 secrets:
   pg_password:
     external: true
-    name: pg_password
   django_secret:
     external: true
   cloudflare.crt:
