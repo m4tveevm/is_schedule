@@ -30,17 +30,23 @@ services:
       - is_schedule_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.is_schedule_stack.rule=Host(`is_schedule.updspace.com`)"
+      - "traefik.http.routers.is_schedule_stack.rule=Host(`is-schedule.updspace.com`)"
       - "traefik.http.routers.is_schedule_stack.entrypoints=websecure"
       - "traefik.http.routers.is_schedule_stack.tls=true"
       - "traefik.http.routers.is_schedule_stack.tls.certresolver=cloudflareResolver"
-      - "traefik.http.routers.is_schedule_stack.tls.domains[0].main=updspace.com"
-      - "traefik.http.routers.is_schedule_stack.tls.domains[0].sans=*.updspace.com"
+      - "traefik.http.routers.is_schedule_stack.tls.domains[0].main=is-schedule.updspace.com"
+      - "traefik.http.routers.is_schedule_stack.tls.domains[0].sans=*.is-schedule.updspace.com"
       - "traefik.http.routers.is_schedule_stack.tls.options.default.minVersion=VersionTLS12"
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls=true"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflareResolver"
       - "traefik.http.routers.traefik-dashboard.service=api@internal"
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
@@ -52,12 +58,12 @@ services:
     networks:
       - is_schedule_network
     secrets:
-      - source: pg_password
-      - source: django_secret
+      - pg_password
+      - django_secret
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
     deploy:
       replicas: 2
@@ -72,8 +78,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
-#      - "traefik.http.routers.frontend.tls=true"
-#      - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     deploy:
       replicas: 2
@@ -104,10 +110,6 @@ secrets:
   pg_password:
     external: true
   django_secret:
-    external: true
-  cloudflare.crt:
-    external: true
-  cloudflare.key:
     external: true
   cloudflare_api_token:
     external: true
