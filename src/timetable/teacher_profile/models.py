@@ -1,6 +1,6 @@
 from django.db import models
 
-from subject.models import LessonType, Subject
+from subject.models import Subject
 
 from teacher.models import Teacher
 
@@ -16,11 +16,24 @@ class TeacherProfile(models.Model):
 
 
 class TeacherProfileAmount(models.Model):
+    LESSON_TYPE_UP = "УП"
+    LESSON_TYPE_KL = "КЛ"
+    LESSON_TYPE_DK = "ДК"
+
+    LESSON_TYPE_CHOICES = [
+        (LESSON_TYPE_UP, "Учебная практика"),
+        (LESSON_TYPE_KL, "Контрольная работа / Коллоквиум"),
+        (LESSON_TYPE_DK, "Другое занятие"),
+    ]
+
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    lesson_type = models.ForeignKey(
-        LessonType,
-        on_delete=models.CASCADE,
-        related_name="teacher_profile_contract_amount",
-        null=True,
-    )
+
+    lesson_type = models.CharField(max_length=2, choices=LESSON_TYPE_CHOICES)
+
     amount = models.IntegerField(default=0)
+
+    def __str__(self):
+        return (
+            f"{self.teacher} - "
+            f"{self.get_lesson_type_display()} - {self.amount}"
+        )

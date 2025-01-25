@@ -1,0 +1,32 @@
+{
+  "name": "IS-TimeTable",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@sentry/react": "^8.47.0",
+    "@sentry/tracing": "^7.114.0",
+    "@testing-library/react": "^16.1.0",
+    "axios": "^1.7.9",
+    "bootstrap": "^5.3.3",
+    "flatpickr": "^4.6.13",
+    "js-cookie": "^3.0.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-flatpickr": "^3.10.13",
+    "react-router-dom": "^7.1.1"
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "test": "react-scripts test"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-nullish-coalescing-operator": "^7.25.9",
+    "@babel/plugin-transform-optional-chaining": "^7.25.9",
+    "@babel/plugin-transform-private-property-in-object": "^7.25.9",
+    "@sentry/cli": "^2.39.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.17.0",
+    "vite": "^6.0.6"
+  }
+}

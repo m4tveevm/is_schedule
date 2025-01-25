@@ -20,7 +20,7 @@ class Teacher(models.Model):
     def save(self, *args, **kwargs):
         if not self.shortname:
             self.shortname = (
-                f"{self.surname} {self.name[0]}. {self.lastname[0]}."
+                f"{self.surname} {self.name[0]}." f" {self.lastname[0]}."
             )
         super().save(*args, **kwargs)
 

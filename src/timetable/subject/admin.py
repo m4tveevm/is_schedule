@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from .models import LessonType, Subject
+from .models import Subject
 
-admin.site.register(LessonType)
 admin.site.register(Subject)

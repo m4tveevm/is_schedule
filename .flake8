@@ -1,5 +1,5 @@
 [flake8]
 extend-ignore = Q000, C901
-exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,.venv,migrations
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,.venv,migrations,frontend
 max-line-length = 80
 max-complexity = 10
