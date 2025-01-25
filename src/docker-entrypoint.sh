@@ -7,11 +7,5 @@ until python -c "import psycopg2; psycopg2.connect('dbname=$DJANGO_DB_NAME user=
   sleep 1
 done
 
-echo "Running migrations..."
-python timetable/manage.py makemigrations
-python timetable/manage.py migrate
-
-echo "Collecting static files..."
-python timetable/manage.py collectstatic --noinput
-
+echo "Starting Django..."
 exec "$@"

@@ -32,7 +32,7 @@ def group_plan_remaining(request):
 
     total = {"УП": 0, "КЛ": 0, "ДК": 0}
     for entry in gep.educational_plan.entries.all():
-        lt_name = entry.lesson_type.short_name
+        lt_name = entry.lesson_type
         if lt_name in total:
             total[lt_name] += entry.hours
 

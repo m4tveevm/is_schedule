@@ -5,6 +5,7 @@ services:
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
+      - "--providers.file.filename=/etc/traefik/dynamic_conf.yaml"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--accesslog=true"
@@ -12,6 +13,7 @@ services:
       - "--accesslog.filters.statusCodes=400-499"
       - "experimental.plugins.traefikkeycloak.modulename=github.com/paladium/traefikkeycloak"
       - "experimental.plugins.traefikkeycloak.version=v1.11"
+
     ports:
       - "80:80"
       - "443:443"
@@ -19,41 +21,83 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./logs:/logs
+      - /path/on/host/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
     networks:
-      - app_network
+      - is_schedule_network
 
+<<<<<<< HEAD:stack.yml
+  migrations:
+    image: ghcr.io/m4tveevm/is_schedule-backend:latest
+    depends_on:
+      - db
+    environment:
+=======
   backend:
     image: ghcr.io/m4tveevm/backend:latest
+    environment:
+      - SECRET_KEY=/run/secrets/django_secret
+>>>>>>> master:docker-compose.yml
+      - DJANGO_DB_HOST=db
+      - DJANGO_DB_NAME=postgres
+      - DJANGO_DB_USER=postgres
+      - DJANGO_DB_PASSWORD=/run/secrets/pg_password
+<<<<<<< HEAD:stack.yml
+    command: >
+      sh -c "
+        echo 'Running migrations...' &&
+        python timetable/manage.py migrate &&
+        python timetable/manage.py collectstatic --noinput
+      "
+    restart: "no"
+=======
+    depends_on:
+      - db
+    networks:
+      - app_network
+>>>>>>> master:docker-compose.yml
+    deploy:
+      replicas: 0
+    networks:
+      - is_schedule_network
+
+  backend:
+    image: ghcr.io/m4tveevm/is_schedule-backend:latest
     environment:
       - SECRET_KEY=/run/secrets/django_secret
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
       - DJANGO_DB_PASSWORD=/run/secrets/pg_password
-    depends_on:
-      - db
     networks:
-      - app_network
+      - is_schedule_network
     deploy:
-      replicas: 3
+      replicas: 2
       update_config:
         parallelism: 1
         delay: 10s
+    depends_on:
+      - db
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.http.routers.backend.tls=true"
 
   frontend:
+<<<<<<< HEAD:stack.yml
+    image: ghcr.io/m4tveevm/is_schedule-frontend:latest
+=======
     image: ghcr.io/m4tveevm/frontend:latest
+>>>>>>> master:docker-compose.yml
     environment:
-      - REACT_APP_BACKEND_URL=http://localhost/api/
+      - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`localhost`) && PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
+      - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     networks:
-      - app_network
+      - is_schedule_network
     deploy:
       replicas: 2
 
@@ -66,14 +110,14 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=/run/secrets/pg_password
     networks:
-      - app_network
+      - is_schedule_network
     deploy:
       restart_policy:
         condition: any
 
 networks:
-  app_network:
-    driver: bridge
+  is_schedule_network:
+    driver: overlay
 
 volumes:
   postgres_data:
