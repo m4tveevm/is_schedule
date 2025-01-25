@@ -44,7 +44,6 @@ services:
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
-      - DJANGO_DB_PASSWORD=/run/secrets/pg_password
     secrets:
       - pg_password
       - django_secret
@@ -61,9 +60,9 @@ services:
         - "traefik.http.services.backend.loadbalancer.server.port=8000"
       secrets:
         - source: pg_password
-          target: /run/secrets/pg_password
+          target: pg_password
         - source: django_secret
-          target: /run/secrets/django_secret
+          target: django_secret
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
