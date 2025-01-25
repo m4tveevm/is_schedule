@@ -106,9 +106,9 @@ jobs:
             docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-backend:latest
             docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-frontend:latest
 
-            docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack.yml is_schedule_network
+            docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack.yml is_schedule_stack
 
             docker run --rm \
-              --network is_schedule_network \
+              --network is_schedule_stack \
               ghcr.io/${{ github.repository_owner }}/is_schedule-backend:latest \
               sh -c "python timetable/manage.py migrate && python timetable/manage.py collectstatic --noinput"
