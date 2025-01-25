@@ -13,8 +13,8 @@ services:
       - "--certificatesresolvers.cloudflareResolver.acme.email=m4tveevm@icloud.com"
       - "--certificatesresolvers.cloudflareResolver.acme.storage=/acme.json"
     environment:
-      - CF_API_EMAIL=m4tveevm@icloud.com
-      - CF_API_KEY=/run/secrets/cloudflare_api_token
+      - CLOUDFLARE_EMAIL=m4tveevm@icloud.com
+      - CLOUDFLARE_API_TOKEN=/run/secrets/cloudflare_api_token
     ports:
       - "80:80"
       - "443:443"
@@ -43,7 +43,6 @@ services:
         - "traefik.http.routers.traefik-dashboard.tls=true"
         - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflareResolver"
         - "traefik.http.routers.traefik-dashboard.service=api@internal"
-#        - "traefik.http.routers.traefik-dashboard.middlewares=auth"
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
