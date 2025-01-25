@@ -97,7 +97,7 @@ jobs:
             # docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-frontend:${{ github.run_number }}
 
             docker run --rm \
-            --network host \
+            --network is_schedule_network \
             -e DJANGO_DB_HOST=db \
             -e DJANGO_DB_NAME=postgres \
             -e DJANGO_DB_USER=postgres \

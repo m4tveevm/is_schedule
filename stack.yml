@@ -25,23 +25,15 @@ services:
     networks:
       - is_schedule_network
 
-<<<<<<< HEAD:stack.yml
   migrations:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
     depends_on:
       - db
     environment:
-=======
-  backend:
-    image: ghcr.io/m4tveevm/backend:latest
-    environment:
-      - SECRET_KEY=/run/secrets/django_secret
->>>>>>> master:docker-compose.yml
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
       - DJANGO_DB_PASSWORD=/run/secrets/pg_password
-<<<<<<< HEAD:stack.yml
     command: >
       sh -c "
         echo 'Running migrations...' &&
@@ -49,12 +41,6 @@ services:
         python timetable/manage.py collectstatic --noinput
       "
     restart: "no"
-=======
-    depends_on:
-      - db
-    networks:
-      - app_network
->>>>>>> master:docker-compose.yml
     deploy:
       replicas: 0
     networks:
@@ -84,11 +70,7 @@ services:
       - "traefik.http.routers.backend.tls=true"
 
   frontend:
-<<<<<<< HEAD:stack.yml
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
-=======
-    image: ghcr.io/m4tveevm/frontend:latest
->>>>>>> master:docker-compose.yml
     environment:
       - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
     labels:
