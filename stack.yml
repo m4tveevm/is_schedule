@@ -9,10 +9,18 @@ services:
       - "--accesslog=true"
       - "--accesslog.filepath=/logs/access.log"
       - "--accesslog.filters.statusCodes=400-499"
-      - "--certificatesresolvers.cloudflareResolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.cloudflareResolver.acme.email=your-email@example.com"
+      - "--certificatesresolvers.cloudflareResolver.acme.dnsChallenge.provider=cloudflare"
+      - "--certificatesresolvers.cloudflareResolver.acme.email=m4tveevm@icloud.com"
       - "--certificatesresolvers.cloudflareResolver.acme.storage=/acme.json"
-
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls=true"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflareResolver"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=auth"
+    environment:
+      - CF_API_EMAIL=m4tveevm@icloud.com
+      - CF_API_KEY=/run/secrets/cloudflare_api_token
     ports:
       - "80:80"
       - "443:443"
@@ -20,9 +28,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./logs:/logs
+      - ./acme.json:/acme.json
     secrets:
-      - cloudflare.crt
-      - cloudflare.key
+      - cloudflare_api_token
     networks:
       - is_schedule_network
     deploy:
@@ -35,8 +43,6 @@ services:
         - "traefik.http.routers.is_schedule_stack.tls.domains[0].main=is-schedule.updspace.com"
         - "traefik.http.routers.is_schedule_stack.tls.domains[0].sans=*.is-schedule.updspace.com"
         - "traefik.http.routers.is_schedule_stack.tls.options.default.minVersion=VersionTLS12"
-        - "traefik.http.routers.is_schedule_stack.tls.stores.default.defaultCertificate.certFile=/run/secrets/cloudflare.crt"
-        - "traefik.http.routers.is_schedule_stack.tls.stores.default.defaultCertificate.keyFile=/run/secrets/cloudflare.key"
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
@@ -107,4 +113,6 @@ secrets:
   cloudflare.crt:
     external: true
   cloudflare.key:
+    external: true
+  cloudflare_api_token:
     external: true
