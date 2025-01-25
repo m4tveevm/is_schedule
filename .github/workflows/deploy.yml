@@ -106,9 +106,10 @@ jobs:
             docker pull ghcr.io/.../is_schedule-backend:latest
             docker pull ghcr.io/.../is_schedule-frontend:latest
 
+            docker network ls
+
             docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack.yml is_schedule_stack
 
-            docker network ls
 
             docker run --rm \
               --network is_schedule_stack_is_schedule_network \
