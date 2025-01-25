@@ -31,7 +31,12 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "is-schedule.updspace.com",
+    "traefik.is-schedule.updspace.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 # Application definition
 
@@ -93,12 +98,12 @@ WSGI_APPLICATION = "timetable.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DJANGO_DB_NAME", "postgres"),
-        "USER": os.getenv("DJANGO_DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DJANGO_DB_PASSWORD"),
-        "HOST": os.getenv("DJANGO_DB_HOST", "db"),
-        "PORT": "5432",
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'postgres'),
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+        'HOST': os.getenv('POSTGRES_HOST', 'db'),  # Assuming your DB service is named 'db'
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
     # "default": {
     #     "ENGINE": "django.db.backends.sqlite3",
@@ -181,3 +186,8 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
