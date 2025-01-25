@@ -22,13 +22,13 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r testng.txt
+          pip install -r src/testng.txt
 
       - name: Run Black
-        run: black --check .
+        run: black --check ./src
 
       - name: Run Flake8
-        run: flake8 .
+        run: flake8 ./src
 
       # todo: add Unittests and django tests
 
