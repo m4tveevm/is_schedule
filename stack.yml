@@ -46,6 +46,9 @@ services:
       - DJANGO_DB_USER=postgres
     networks:
       - is_schedule_network
+    secrets:
+      - source: pg_password
+      - source: django_secret
     deploy:
       replicas: 2
       labels:
@@ -55,9 +58,7 @@ services:
         - "traefik.http.routers.backend.tls=true"
         - "traefik.http.routers.backend.tls.certresolver=cloudflareResolver"
         - "traefik.http.services.backend.loadbalancer.server.port=8000"
-    secrets:
-      - source: pg_password
-      - source: django_secret
+
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
