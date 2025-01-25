@@ -109,13 +109,11 @@ WSGI_APPLICATION = "timetable.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "postgres"),
-        "USER": os.getenv("POSTGRES_USER", "postgres"),
-        "PASSWORD": get_secret("POSTGRES_PASSWORD", ""),
-        "HOST": os.getenv(
-            "POSTGRES_HOST", "db"
-        ),  # Assuming your DB service is named 'db'
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        "NAME": "postgres",
+        "USER": "postgres",
+        "PASSWORD": get_secret("pg_password", ""),
+        "HOST": "db",
+        "PORT": "5432",
     }
     # "default": {
     #     "ENGINE": "django.db.backends.sqlite3",

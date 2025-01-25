@@ -60,8 +60,7 @@ services:
     networks:
       - is_schedule_network
     secrets:
-      - source: pg_password
-        target: POSTGRES_PASSWORD
+      - pg_password
       - django_secret
     expose:
       - "8000"
