@@ -36,7 +36,10 @@ services:
       - "traefik.http.routers.is_schedule_stack.tls.certresolver=cloudflareResolver"
       - "traefik.http.routers.is_schedule_stack.tls.domains[0].main=is-schedule.updspace.com"
       - "traefik.http.routers.is_schedule_stack.tls.domains[0].sans=*.is-schedule.updspace.com"
-      - "traefik.http.routers.is_schedule_stack.tls.options.default.minVersion=VersionTLS12"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
       - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
       - "traefik.http.routers.traefik-dashboard.tls=true"
@@ -54,12 +57,14 @@ services:
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
-      - POSTGRES_PASSWORD=/run/secrets/pg_password
     networks:
       - is_schedule_network
     secrets:
-      - pg_password
+      - source: pg_password
+        target: POSTGRES_PASSWORD
       - django_secret
+    ports:
+      - "8000:8000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
@@ -74,6 +79,8 @@ services:
       - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
     networks:
       - is_schedule_network
+    ports:
+      - "80:80"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
@@ -91,7 +98,9 @@ services:
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=/run/secrets/pg_password
+    secrets:
+      - source: pg_password
+        target: POSTGRES_PASSWORD
     networks:
       - is_schedule_network
     deploy:
