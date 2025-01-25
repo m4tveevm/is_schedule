@@ -94,7 +94,8 @@ services:
 networks:
   is_schedule_network:
     external: true
-    driver: overlay
+    name: is_schedule_network
+
 
 volumes:
   postgres_data:
