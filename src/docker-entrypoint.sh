@@ -3,7 +3,7 @@ set -e
 
 echo "Checking database connection..."
 
-export DJANGO_DB_PASSWORD=$(cat /run/secrets/pg_password)
+#export DJANGO_DB_PASSWORD=$(cat /run/secrets/pg_password)
 
 until python -c "import psycopg2; psycopg2.connect('dbname=$DJANGO_DB_NAME user=$DJANGO_DB_USER password=$DJANGO_DB_PASSWORD host=$DJANGO_DB_HOST')" > /dev/null 2>&1; do
   echo "Waiting for database..."
