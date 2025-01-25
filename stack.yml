@@ -97,9 +97,9 @@ services:
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
     secrets:
-      - source: pg_password
-        target: POSTGRES_PASSWORD
+      - pg_password
     networks:
       - is_schedule_network
     deploy:
