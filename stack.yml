@@ -70,12 +70,14 @@ services:
       - django_secret
     ports:
       - target: 8000
-        mode: ingress
+        published: 8001
+        mode: host
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.http.routers.backend.service=backend"
     deploy:
       replicas: 2
 
@@ -87,13 +89,14 @@ services:
       - is_schedule_network
     ports:
       - target: 80
-        mode: ingress
+        published: 80
+        mode: host
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls=true"
-      - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
+      - "traefik.http.routers.frontend.service=frontend"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     deploy:
       replicas: 2
@@ -118,8 +121,8 @@ services:
 
 networks:
   is_schedule_network:
-    external: true
-    name: is_schedule_network
+    driver: overlay
+
 
 volumes:
   postgres_data:
