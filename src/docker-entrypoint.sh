@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Waiting for database..."
-until pg_isready -h db -U postgres; do
+until nc -z -v -w30 db 5432; do
   echo "Waiting for PostgreSQL to be ready..."
   sleep 3
 done
