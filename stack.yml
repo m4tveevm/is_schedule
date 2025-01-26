@@ -4,7 +4,6 @@ services:
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
-      - "--providers.docker.swarmMode=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--accesslog=true"
@@ -68,10 +67,8 @@ services:
     secrets:
       - pg_password
       - django_secret
-    ports:
-      - target: 8000
-        published: 8000
-        mode: ingress
+    expose:
+      - "8000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
@@ -86,10 +83,8 @@ services:
       - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
     networks:
       - is_schedule_network
-    ports:
-      - target: 80
-        published: 80
-        mode: ingress
+    expose:
+      - "80"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
@@ -100,36 +95,7 @@ services:
     deploy:
       replicas: 2
 
-  db:
-    image: postgres:15
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_HOST_AUTH_METHOD=trust
-      - POSTGRES_LISTEN_ADDRESSES=*
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
-    secrets:
-      - pg_password
-    networks:
-      - is_schedule_network
-    deploy:
-      restart_policy:
-        condition: any
-
 networks:
   is_schedule_network:
     external: true
     name: is_schedule_network
-
-volumes:
-  postgres_data:
-
-secrets:
-  pg_password:
-    external: true
-  django_secret:
-    external: true
-  cloudflare_api_token:
-    external: true
