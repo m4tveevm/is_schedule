@@ -3,25 +3,15 @@ services:
     image: traefik:v3.1
     command:
       - "--api.dashboard=true"
-      - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.swarm=true"
       - "--providers.swarm.exposedByDefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.traefik.address=:8080"
-      - "--log.level=DEBUG"
-
-      - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
-      - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1,1.0.0.1"
-      - "--certificatesresolvers.cloudflare.acme.email=m4tveevm@icloud.com"
-      - "--certificatesresolvers.cloudflare.acme.storage=/acme/acme.json"
-
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.websecure.http.tls=true"
-      - "--entrypoints.websecure.http.tls.certresolver=cloudflare"
+      - "--entrypoints.websecure.http.tls.stores.default.defaultCertificate.certFile=/run/secrets/tls_cert"
+      - "--entrypoints.websecure.http.tls.stores.default.defaultCertificate.keyFile=/run/secrets/tls_key"
     ports:
       - mode: host
         protocol: tcp
@@ -33,13 +23,11 @@ services:
         target: 443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./acme:/acme
+    secrets:
+      - tls_cert
+      - tls_key
     networks:
       - is_schedule_network
-    secrets:
-      - cloudflare_api_token
-    environment:
-      - CF_DNS_API_TOKEN_FILE=/run/secrets/cloudflare_api_token
     deploy:
       mode: global
       placement:
@@ -49,7 +37,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.updspace.com`)"
       - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
-      - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik-dashboard.tls=true"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
@@ -66,7 +55,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=cloudflare"
+      - "traefik.http.routers.backend.tls=true"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
     deploy:
       replicas: 2
@@ -74,8 +63,6 @@ services:
         condition: on-failure
       update_config:
         order: start-first
-    ports:
-      - "8000:8000"
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
@@ -87,15 +74,12 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=cloudflare"
+      - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     deploy:
       replicas: 2
       restart_policy:
         condition: on-failure
-    ports:
-      - "80:80"
-
 
   db:
     image: postgres:15
@@ -111,8 +95,6 @@ services:
       - pg_password
     networks:
       - is_schedule_network
-    ports:
-      - "5432:5432"
     deploy:
       restart_policy:
         condition: any
@@ -121,6 +103,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      - "traefik.enable=false"
 
 networks:
   is_schedule_network:
@@ -131,9 +115,11 @@ volumes:
   postgres_data:
 
 secrets:
+  tls_cert:
+    external: true
+  tls_key:
+    external: true
   pg_password:
     external: true
   django_secret:
-    external: true
-  cloudflare_api_token:
     external: true
