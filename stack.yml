@@ -11,8 +11,8 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-      - "--entrypoints.websecure.http.tls.certificates[0].certFile=/run/secrets/tls_cert"
-      - "--entrypoints.websecure.http.tls.certificates[0].keyFile=/run/secrets/tls_key"
+      - "--tls.stores.default.defaultCertificate.certFile=/run/secrets/tls_cert"
+      - "--tls.stores.default.defaultCertificate.keyFile=/run/secrets/tls_key"
     ports:
       - mode: host
         protocol: tcp
