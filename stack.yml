@@ -70,9 +70,6 @@ services:
         condition: on-failure
       update_config:
         order: start-first
-    depends_on:
-      db:
-        condition: service_healthy
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
@@ -107,7 +104,7 @@ services:
     networks:
       - is_schedule_network
     ports:
-      - "5432"
+      - "5432:5432"
     deploy:
       restart_policy:
         condition: any
