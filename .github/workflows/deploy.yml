@@ -123,5 +123,3 @@ jobs:
             docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-frontend:latest
             
             docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack.yml is_schedule_stack
-            
-            NETWORK_NAME=$(docker network ls --format '{{.Name}}' | grep "is_schedule_stack_is_schedule_network")
