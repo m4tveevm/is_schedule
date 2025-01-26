@@ -83,13 +83,15 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      - name: Upload stack file via scp
+      - name: Upload stack and dynamic config files via scp
         uses: appleboy/scp-action@v0.1.6
         with:
           host: ${{ secrets.VDS_HOST }}
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
-          source: "./stack.yml"
+          source: |
+            ./stack.yml
+            ./dynamic.yml
           target: "/home/${{ secrets.VDS_USER }}"
           overwrite: true
           strip_components: 0
