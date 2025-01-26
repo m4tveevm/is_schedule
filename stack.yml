@@ -17,9 +17,15 @@ services:
       - CLOUDFLARE_EMAIL=m4tveevm@icloud.com
       - CLOUDFLARE_API_TOKEN=/run/secrets/cloudflare_api_token
     ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
+      - target: 80
+        published: 80
+        mode: host
+      - target: 443
+        published: 443
+        mode: host
+      - target: 8080
+        published: 8080
+        mode: ingress
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./logs:/logs
@@ -62,8 +68,10 @@ services:
     secrets:
       - pg_password
       - django_secret
-    expose:
-      - "8000"
+    ports:
+      - target: 8000
+        published: 8000
+        mode: ingress
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
@@ -78,8 +86,10 @@ services:
       - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
     networks:
       - is_schedule_network
-    expose:
-      - "80"
+    ports:
+      - target: 80
+        published: 80
+        mode: ingress
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
