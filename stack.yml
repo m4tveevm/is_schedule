@@ -1,7 +1,6 @@
 services:
   traefik:
     image: traefik:v2.10
-
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"
@@ -9,17 +8,10 @@ services:
       - "--providers.docker.swarmMode=true"
       - "--providers.docker.exposedByDefault=false"
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
       - "--accesslog=true"
       - "--log.level=DEBUG"
       - "--accesslog.filepath=/logs/access.log"
       - "--accesslog.filters.statusCodes=400-499"
-      - "--certificatesresolvers.cloudflareResolver.acme.dnsChallenge.provider=cloudflare"
-      - "--certificatesresolvers.cloudflareResolver.acme.email=m4tveevm@icloud.com"
-      - "--certificatesresolvers.cloudflareResolver.acme.storage=/acme.json"
-    environment:
-      - CLOUDFLARE_EMAIL=m4tveevm@icloud.com
-      - CLOUDFLARE_API_TOKEN=/run/secrets/cloudflare_api_token
     ports:
       - mode: host
         protocol: tcp
@@ -27,18 +19,11 @@ services:
         target: 80
       - mode: host
         protocol: tcp
-        published: 443
-        target: 443
-      - mode: host
-        protocol: tcp
         published: 8080
         target: 8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./logs:/logs
-      - ./acme.json:/acme.json
-    secrets:
-      - cloudflare_api_token
     networks:
       - is_schedule_network
     deploy:
@@ -48,14 +33,8 @@ services:
           - node.role == manager
     labels:
       - "traefik.enable=true"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
-      - "traefik.http.routers.http-catchall.entrypoints=web"
-      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
-      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
-      - "traefik.http.routers.traefik-dashboard.tls=true"
-      - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflareResolver"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=web"
       - "traefik.http.routers.traefik-dashboard.service=api@internal"
 
   backend:
@@ -70,9 +49,9 @@ services:
       - pg_password
       - django_secret
     labels:
-      - "traefik.http.routers.backend.rule=Host(\"is-schedule.updspace.com\") && PathPrefix(\"/api\")"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=cloudflareResolver"
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
     deploy:
       replicas: 2
@@ -84,14 +63,13 @@ services:
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
     environment:
-      - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
+      - REACT_APP_BACKEND_URL=http://is-schedule.updspace.com/api/
     networks:
       - is_schedule_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(\"is-schedule.updspace.com\")"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
+      - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     deploy:
       replicas: 2
@@ -136,6 +114,3 @@ secrets:
     external: true
   django_secret:
     external: true
-  cloudflare_api_token:
-    external: true
-    name: cloudflare_api_token
