@@ -108,7 +108,9 @@ jobs:
 
             docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack.yml is_schedule_stack
 
+            NETWORK_NAME=$(docker network ls --format '{{.Name}}' | grep "is_schedule_stack_is_schedule_network")
+
             docker run --rm \
-              --network is_schedule_network \
+              --network $NETWORK_NAME \
               ghcr.io/${{ github.repository_owner }}/is_schedule-backend:latest \
               sh -c "python timetable/manage.py migrate && python timetable/manage.py collectstatic --noinput"
