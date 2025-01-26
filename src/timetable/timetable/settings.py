@@ -15,7 +15,6 @@ from datetime import timedelta
 from pathlib import Path
 
 from corsheaders.defaults import default_headers
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -175,8 +174,7 @@ STATIC_ROOT = "/app/staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:8000",
+    "https://is-schedule.updspace.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [

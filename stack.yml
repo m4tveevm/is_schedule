@@ -81,6 +81,10 @@ services:
       replicas: 2
       restart_policy:
         condition: on-failure
+    build:
+      context: .
+      args:
+        REACT_APP_BACKEND_URL: "https://is-schedule.updspace.com/api/"
 
   db:
     image: postgres:15
