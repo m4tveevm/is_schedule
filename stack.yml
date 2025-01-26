@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   traefik:
     image: traefik:v2.10
@@ -19,12 +21,9 @@ services:
     ports:
       - target: 80
         published: 80
-        mode: host
+        mode: ingress
       - target: 443
         published: 443
-        mode: host
-      - target: 8080
-        published: 8080
         mode: ingress
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -40,17 +39,22 @@ services:
       - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
       - "traefik.http.routers.http-catchall.entrypoints=web"
       - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
-      - "traefik.http.routers.is_schedule_stack.rule=Host(`is-schedule.updspace.com`)"
-      - "traefik.http.routers.is_schedule_stack.entrypoints=websecure"
-      - "traefik.http.routers.is_schedule_stack.tls=true"
-      - "traefik.http.routers.is_schedule_stack.tls.certresolver=cloudflareResolver"
-      - "traefik.http.routers.is_schedule_stack.tls.domains[0].main=is-schedule.updspace.com"
-      - "traefik.http.routers.is_schedule_stack.tls.domains[0].sans=*.is-schedule.updspace.com"
+      - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.tls.certresolver=cloudflareResolver"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
       - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
       - "traefik.http.routers.traefik-dashboard.tls=true"
       - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflareResolver"
       - "traefik.http.routers.traefik-dashboard.service=api@internal"
+
     deploy:
       replicas: 1
       placement:
@@ -68,18 +72,17 @@ services:
     secrets:
       - pg_password
       - django_secret
-    ports:
-      - target: 8000
-        published: 8001
-        mode: host
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      - "traefik.http.routers.backend.service=backend"
     deploy:
       replicas: 2
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - db
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
@@ -87,19 +90,17 @@ services:
       - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
     networks:
       - is_schedule_network
-    ports:
-      - target: 80
-        published: 80
-        mode: host
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls=true"
-      - "traefik.http.routers.frontend.service=frontend"
+      - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     deploy:
       replicas: 2
+      restart_policy:
+        condition: on-failure
 
   db:
     image: postgres:15
@@ -122,7 +123,6 @@ services:
 networks:
   is_schedule_network:
     driver: overlay
-
 
 volumes:
   postgres_data:
