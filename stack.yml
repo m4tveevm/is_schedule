@@ -70,7 +70,6 @@ services:
       - django_secret
     ports:
       - target: 8000
-        published: 8000
         mode: ingress
     labels:
       - "traefik.enable=true"
@@ -88,7 +87,6 @@ services:
       - is_schedule_network
     ports:
       - target: 80
-        published: 80
         mode: ingress
     labels:
       - "traefik.enable=true"
