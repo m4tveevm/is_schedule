@@ -1,11 +1,14 @@
 services:
   traefik:
     image: traefik:v2.10
+
     command:
       - "--api.dashboard=true"
       - "--api.insecure=false"
+      - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedByDefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--accesslog=true"
@@ -19,9 +22,18 @@ services:
       - CLOUDFLARE_EMAIL=m4tveevm@icloud.com
       - CLOUDFLARE_API_TOKEN=/run/secrets/cloudflare_api_token
     ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
+      - mode: host
+        protocol: tcp
+        published: 80
+        target: 80
+      - mode: host
+        protocol: tcp
+        published: 443
+        target: 443
+      - mode: host
+        protocol: tcp
+        published: 8080
+        target: 8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./logs:/logs
@@ -64,6 +76,7 @@ services:
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=cloudflareResolver"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.port=8000"
     deploy:
       replicas: 2
       restart_policy:
@@ -84,6 +97,7 @@ services:
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      - "traefik.port=80"
     deploy:
       replicas: 2
       restart_policy:
