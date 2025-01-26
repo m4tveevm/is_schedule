@@ -53,7 +53,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(\"is-schedule.updspace.com\")"
       - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=cloudflareResolver"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     deploy:
       replicas: 2
@@ -64,7 +64,7 @@ services:
     image: postgres
     user: postgres
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     secrets:
       - pg_password
     environment:
@@ -82,7 +82,7 @@ services:
       retries: 5
 
 volumes:
-  db_data:
+  db-data:
   letsencrypt:
 
 secrets:
