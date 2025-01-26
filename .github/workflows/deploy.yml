@@ -86,7 +86,7 @@ jobs:
 
       - name: Replace GIT_COMMIT_HASH in stack.yml
         run: |
-          envsubst < stack.yml > stack_deploy.yml
+          sed "s|\${GIT_COMMIT_HASH:-latest}|$GIT_COMMIT_HASH|g" stack.yml > stack_deploy.yml
           cat stack_deploy.yml
 
       - name: Create deployment directory on server
@@ -115,11 +115,11 @@ jobs:
           host: ${{ secrets.VDS_HOST }}
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
+          envs: GIT_COMMIT_HASH
           script: |
-            export GIT_COMMIT_HASH=$(git rev-parse --short HEAD)
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-backend:$GIT_COMMIT_HASH
+
+            docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-backend:${{ env.GIT_COMMIT_HASH }}
             docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-frontend:latest
-            
+
             docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack.yml is_schedule_stack
