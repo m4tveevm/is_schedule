@@ -6,6 +6,7 @@ on:
       - "master"
   workflow_dispatch:
 
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -29,6 +30,8 @@ jobs:
       - name: Run Flake8
         run: flake8 ./src
 
+      # todo: add Unittests and django tests
+
   build-and-push:
     runs-on: ubuntu-latest
     needs: build-and-test
@@ -38,9 +41,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-      - name: Get Commit Hash
-        run: echo "GIT_COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -55,24 +55,26 @@ jobs:
       - name: Build and Tag Backend Image
         run: |
           BACKEND_IMAGE=ghcr.io/${{ github.repository_owner }}/is_schedule-backend
-          docker build -t $BACKEND_IMAGE:latest -t $BACKEND_IMAGE:$GIT_COMMIT_HASH -f ./src/Dockerfile ./src
+          docker build -t $BACKEND_IMAGE:latest -f ./src/Dockerfile ./src
+          docker tag $BACKEND_IMAGE:latest $BACKEND_IMAGE:${{ github.run_number }}
 
       - name: Push Backend Image
         run: |
           BACKEND_IMAGE=ghcr.io/${{ github.repository_owner }}/is_schedule-backend
           docker push $BACKEND_IMAGE:latest
-          docker push $BACKEND_IMAGE:$GIT_COMMIT_HASH
+          docker push $BACKEND_IMAGE:${{ github.run_number }}
 
       - name: Build and Tag Frontend Image
         run: |
           FRONTEND_IMAGE=ghcr.io/${{ github.repository_owner }}/is_schedule-frontend
-          docker build -t $FRONTEND_IMAGE:latest -t $FRONTEND_IMAGE:$GIT_COMMIT_HASH -f ./frontend/Dockerfile ./frontend
+          docker build -t $FRONTEND_IMAGE:latest -f ./frontend/Dockerfile ./frontend
+          docker tag $FRONTEND_IMAGE:latest $FRONTEND_IMAGE:${{ github.run_number }}
 
       - name: Push Frontend Image
         run: |
           FRONTEND_IMAGE=ghcr.io/${{ github.repository_owner }}/is_schedule-frontend
           docker push $FRONTEND_IMAGE:latest
-          docker push $FRONTEND_IMAGE:$GIT_COMMIT_HASH
+          docker push $FRONTEND_IMAGE:${{ github.run_number }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -81,22 +83,6 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      - name: Get Commit Hash
-        run: echo "GIT_COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
-      - name: Replace GIT_COMMIT_HASH in stack.yml
-        run: |
-          sed "s|\${GIT_COMMIT_HASH:-latest}|$GIT_COMMIT_HASH|g" stack.yml > stack.yml
-
-      - name: Create deployment directory on server
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.VDS_HOST }}
-          username: ${{ secrets.VDS_USER }}
-          key: ${{ secrets.VDS_SSH_KEY }}
-          script: |
-            mkdir -p /home/${{ secrets.VDS_USER }}
-
       - name: Upload stack file via scp
         uses: appleboy/scp-action@v0.1.6
         with:
@@ -104,7 +90,7 @@ jobs:
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
           source: "./stack.yml"
-          target: "/home/${{ secrets.VDS_USER }}/"
+          target: "/home/${{ secrets.VDS_USER }}"
           overwrite: true
           strip_components: 0
 
@@ -114,11 +100,17 @@ jobs:
           host: ${{ secrets.VDS_HOST }}
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
-          envs: GIT_COMMIT_HASH
           script: |
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-backend:${{ env.GIT_COMMIT_HASH }}
-            docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-frontend:${{ env.GIT_COMMIT_HASH }}
+            docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-backend:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-frontend:latest
 
             docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack.yml is_schedule_stack
+
+            NETWORK_NAME=$(docker network ls --format '{{.Name}}' | grep "is_schedule_stack_is_schedule_network")
+
+            docker run --rm \
+              --network $NETWORK_NAME \
+              ghcr.io/${{ github.repository_owner }}/is_schedule-backend:latest \
+              sh -c "python timetable/manage.py migrate && python timetable/manage.py collectstatic --noinput"

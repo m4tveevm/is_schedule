@@ -1,20 +1,17 @@
 services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:v2.10
     command:
-      - "--providers.docker"
-      - "--providers.docker.swarmMode=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entryPoints.websecure.address=:443"
-      #      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=m4tveevm@icloud.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--api.dashboard=true"
       - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--accesslog=true"
+      - "--log.level=DEBUG"
+      - "--accesslog.filepath=/logs/access.log"
+      - "--accesslog.filters.statusCodes=400-499"
     ports:
       - mode: host
         protocol: tcp
@@ -22,92 +19,98 @@ services:
         target: 80
       - mode: host
         protocol: tcp
-        published: 443
-        target: 443
-      - mode: host
-        protocol: tcp
         published: 8080
         target: 8080
     volumes:
-      - letsencrypt:/letsencrypt
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./logs:/logs
     networks:
       - is_schedule_network
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=web"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
 
   backend:
-    image: ghcr.io/m4tveevm/is_schedule-backend:${GIT_COMMIT_HASH:-latest}
+    image: ghcr.io/m4tveevm/is_schedule-backend:latest
     environment:
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
+    networks:
+      - is_schedule_network
     secrets:
       - pg_password
       - django_secret
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      - "traefik.http.routers.backend.rule=Host(\"is-schedule.updspace.com\") && PathPrefix(\"/api\")"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=myresolver"
     deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
       update_config:
         order: start-first
-    depends_on:
-      - db
-    networks:
-      - is_schedule_network
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
     environment:
-      - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
+      - REACT_APP_BACKEND_URL=http://is-schedule.updspace.com/api/
+    networks:
+      - is_schedule_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(\"is-schedule.updspace.com\")"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     deploy:
       replicas: 2
       restart_policy:
         condition: on-failure
-    networks:
-      - is_schedule_network
 
   db:
-    image: postgres
-    user: postgres
+    image: postgres:15
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_LISTEN_ADDRESSES=*
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
     secrets:
       - pg_password
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
+    networks:
+      - is_schedule_network
     ports:
       - "5432:5432"
     deploy:
       restart_policy:
         condition: any
     healthcheck:
-      test: [ "CMD", "pg_isready" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - is_schedule_network
+
+networks:
+  is_schedule_network:
+    driver: overlay
+    attachable: true
 
 volumes:
-  db-data:
-  letsencrypt:
+  postgres_data:
 
 secrets:
   pg_password:
     external: true
   django_secret:
-    external: true
-
-
-networks:
-  is_schedule_network:
     external: true
