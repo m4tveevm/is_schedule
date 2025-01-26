@@ -4,7 +4,7 @@ services:
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"
-      - "--providers.docker.swarmMode=true"
+      - "--providers.swarm=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.traefik.address=:8080"
       - "--accesslog=true"
