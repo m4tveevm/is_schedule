@@ -85,7 +85,9 @@ jobs:
         run: echo "GIT_COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Replace GIT_COMMIT_HASH in stack.yml
-        run: sed -i "s/\${GIT_COMMIT_HASH:-latest}/$GIT_COMMIT_HASH/g" stack.yml
+        run: |
+          envsubst < stack.yml > stack_deploy.yml
+          cat stack_deploy.yml  # Для отладки, если надо
 
       - name: Upload stack file via scp
         uses: appleboy/scp-action@v0.1.6
@@ -93,8 +95,8 @@ jobs:
           host: ${{ secrets.VDS_HOST }}
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
-          source: "./stack.yml"
-          target: "/home/${{ secrets.VDS_USER }}"
+          source: "./stack_deploy.yml"
+          target: "/home/${{ secrets.VDS_USER }}/stack.yml"
           overwrite: true
           strip_components: 0
 
