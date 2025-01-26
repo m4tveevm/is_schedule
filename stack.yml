@@ -3,6 +3,7 @@ services:
     image: traefik:v3.1
     command:
       - "--providers.docker"
+      - "--providers.docker.swarmMode=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entryPoints.websecure.address=:443"
       #      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
@@ -24,6 +25,8 @@ services:
     volumes:
       - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - is_schedule_network
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:${GIT_COMMIT_HASH:-latest}
@@ -45,6 +48,8 @@ services:
         order: start-first
     depends_on:
       - db
+    networks:
+      - is_schedule_network
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
@@ -60,6 +65,8 @@ services:
       replicas: 2
       restart_policy:
         condition: on-failure
+    networks:
+      - is_schedule_network
 
   db:
     image: postgres
@@ -81,6 +88,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - is_schedule_network
 
 volumes:
   db-data:
@@ -90,4 +99,9 @@ secrets:
   pg_password:
     external: true
   django_secret:
+    external: true
+
+
+networks:
+  is_schedule_network:
     external: true
