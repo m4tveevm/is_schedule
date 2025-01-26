@@ -4,6 +4,7 @@ services:
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"
+      - "--providers.docker=true"
       - "--providers.swarm=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.traefik.address=:8080"
@@ -57,6 +58,11 @@ services:
         condition: on-failure
       update_config:
         order: start-first
+      endpoint_mode: vip
+      ports:
+        - target: 8000
+          published: 8000
+          mode: host
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
@@ -73,6 +79,11 @@ services:
       replicas: 2
       restart_policy:
         condition: on-failure
+      endpoint_mode: vip
+      ports:
+        - target: 80
+          published: 8081
+          mode: host
 
   db:
     image: postgres:15
