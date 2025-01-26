@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost/api/';
+// todo: починить передачу ссылки через сикреты, сейчас нет времени проверить.
+// export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost/api/';
+export const API_BASE_URL = 'https://is-schedule.updspace.com/api/';
 
 export const obtainToken = (username, password) => {
     return axios.post(`${API_BASE_URL}token/`, {username, password});
