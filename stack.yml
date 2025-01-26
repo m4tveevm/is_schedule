@@ -56,8 +56,6 @@ services:
       - DJANGO_DB_USER=postgres
     networks:
       - is_schedule_network
-    ports:
-      - "8000:8000"
     secrets:
       - pg_password
       - django_secret
@@ -70,8 +68,11 @@ services:
       replicas: 2
       restart_policy:
         condition: on-failure
+      update_config:
+        order: start-first
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
@@ -79,9 +80,6 @@ services:
       - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
     networks:
       - is_schedule_network
-    ports:
-      - "80:80"
-
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
@@ -113,6 +111,11 @@ services:
     deploy:
       restart_policy:
         condition: any
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   is_schedule_network:
