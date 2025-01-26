@@ -86,8 +86,8 @@ jobs:
 
       - name: Replace GIT_COMMIT_HASH in stack.yml
         run: |
-          sed "s|\${GIT_COMMIT_HASH:-latest}|$GIT_COMMIT_HASH|g" stack.yml > stack_deploy.yml
-          cat stack_deploy.yml  # Отладка
+          envsubst < stack.yml > stack_deploy.yml
+          cat stack_deploy.yml
 
       - name: Create deployment directory on server
         uses: appleboy/ssh-action@v0.1.7
@@ -105,7 +105,7 @@ jobs:
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
           source: "./stack_deploy.yml"
-          target: "/home/${{ secrets.VDS_USER }}/stack.yml"
+          target: "/home/${{ secrets.VDS_USER }}/"
           overwrite: true
           strip_components: 0
 
