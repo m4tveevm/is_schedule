@@ -87,7 +87,6 @@ jobs:
       - name: Replace GIT_COMMIT_HASH in stack.yml
         run: |
           sed "s|\${GIT_COMMIT_HASH:-latest}|$GIT_COMMIT_HASH|g" stack.yml > stack_deploy.yml
-          cat stack_deploy.yml
 
       - name: Create deployment directory on server
         uses: appleboy/ssh-action@v0.1.7
@@ -120,6 +119,13 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-backend:${{ env.GIT_COMMIT_HASH }}
-            docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-frontend:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-frontend:${{ env.GIT_COMMIT_HASH }}
 
             docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack.yml is_schedule_stack
+            
+            NETWORK_NAME=$(docker network ls --format '{{.Name}}' | grep "is_schedule_stack_is_schedule_network")
+
+            docker run --rm \
+              --network $NETWORK_NAME \
+              ghcr.io/${{ github.repository_owner }}/is_schedule-backend:${{ env.GIT_COMMIT_HASH }} \
+              sh -c "python timetable/manage.py migrate && python timetable/manage.py collectstatic --noinput"
