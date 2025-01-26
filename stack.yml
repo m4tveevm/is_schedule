@@ -59,6 +59,8 @@ services:
         condition: on-failure
       update_config:
         order: start-first
+    ports:
+      - "8000:8000"
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
@@ -75,6 +77,8 @@ services:
       replicas: 2
       restart_policy:
         condition: on-failure
+    ports:
+      - "80:80"
 
 
   db:
