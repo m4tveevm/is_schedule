@@ -83,34 +83,16 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      - name: Verify stack.yml and dynamic.yml existence
-        run: |
-          ls -la ./stack.yml
-          ls -la ./dynamic.yml
-
-          - name: Upload stack and dynamic config files via scp
-            uses: appleboy/scp-action@v0.1.6
-            with:
-              host: ${{ secrets.VDS_HOST }}
-              username: ${{ secrets.VDS_USER }}
-              key: ${{ secrets.VDS_SSH_KEY }}
-              source: |
-                ./stack.yml
-                ./dynamic.yml
-              target: "/home/${{ secrets.VDS_USER }}"
-              overwrite: true
-              strip_components: 0
-              port: 22
-              timeout: 30s
-              command_timeout: 10m
-              use_insecure_cipher: false
-              rm: false
-              debug: false
-              tar_dereference: false
-              tar_exec: tar
-              proxy_port: 22
-              proxy_timeout: 30s
-              proxy_use_insecure_cipher: false
+      - name: Upload stack file via scp
+        uses: appleboy/scp-action@v0.1.6
+        with:
+          host: ${{ secrets.VDS_HOST }}
+          username: ${{ secrets.VDS_USER }}
+          key: ${{ secrets.VDS_SSH_KEY }}
+          source: "./stack.yml"
+          target: "/home/${{ secrets.VDS_USER }}"
+          overwrite: true
+          strip_components: 0
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
