@@ -87,7 +87,16 @@ jobs:
       - name: Replace GIT_COMMIT_HASH in stack.yml
         run: |
           envsubst < stack.yml > stack_deploy.yml
-          cat stack_deploy.yml  # Для отладки, если надо
+          cat stack_deploy.yml  # Отладка
+
+      - name: Create deployment directory on server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VDS_HOST }}
+          username: ${{ secrets.VDS_USER }}
+          key: ${{ secrets.VDS_SSH_KEY }}
+          script: |
+            mkdir -p /home/${{ secrets.VDS_USER }}
 
       - name: Upload stack file via scp
         uses: appleboy/scp-action@v0.1.6
@@ -96,7 +105,7 @@ jobs:
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
           source: "./stack_deploy.yml"
-          target: "/home/${{ secrets.VDS_USER }}/stack.yml"
+          target: "/home/${{ secrets.VDS_USER }}/"
           overwrite: true
           strip_components: 0
 
@@ -112,7 +121,7 @@ jobs:
             docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-backend:$GIT_COMMIT_HASH
             docker pull ghcr.io/${{ github.repository_owner }}/is_schedule-frontend:latest
 
-            docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack.yml is_schedule_stack
+            docker stack deploy -c /home/${{ secrets.VDS_USER }}/stack_deploy.yml is_schedule_stack
 
             NETWORK_NAME=$(docker network ls --format '{{.Name}}' | grep "is_schedule_stack_is_schedule_network")
 
