@@ -1,7 +1,6 @@
 # IS-schedule
 
-[![CI-CD Pipeline](https://github.com/m4tveevm/is_schedule/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/m4tveevm/is_schedule/actions/workflows/deploy.yml)
-
+[![Deployment Status](https://github.com/m4tveevm/is_schedule/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/m4tveevm/is_schedule/actions/workflows/deploy.yml)
 [![Перейти на сайт](https://img.shields.io/badge/Перейти-на_сайт-blue)](https://is-schedule.updspace.com)
 
 IS-timetable — это информационная система для составления и управления
