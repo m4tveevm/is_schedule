@@ -9,6 +9,7 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--accesslog=true"
+      - "--log.level=DEBUG"
       - "--accesslog.filepath=/logs/access.log"
       - "--accesslog.filters.statusCodes=400-499"
       - "--certificatesresolvers.cloudflareResolver.acme.dnsChallenge.provider=cloudflare"
@@ -56,7 +57,7 @@ services:
     networks:
       - is_schedule_network
     ports:
-      - "8000"
+      - "8000:8000"
     secrets:
       - pg_password
       - django_secret
@@ -79,7 +80,8 @@ services:
     networks:
       - is_schedule_network
     ports:
-      - "80"
+      - "80:80"
+
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
