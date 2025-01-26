@@ -103,7 +103,7 @@ jobs:
           host: ${{ secrets.VDS_HOST }}
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
-          source: "./stack_deploy.yml"
+          source: "./stack.yml"
           target: "/home/${{ secrets.VDS_USER }}/"
           overwrite: true
           strip_components: 0
