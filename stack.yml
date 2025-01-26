@@ -1,17 +1,9 @@
 services:
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.1
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.swarmMode=true"
-      - "--providers.docker.exposedByDefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--accesslog=true"
-      - "--log.level=DEBUG"
-      - "--accesslog.filepath=/logs/access.log"
-      - "--accesslog.filters.statusCodes=400-499"
     ports:
       - mode: host
         protocol: tcp
@@ -22,20 +14,10 @@ services:
         published: 8080
         target: 8080
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./logs:/logs
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - is_schedule_network
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.role == manager
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.is-schedule.updspace.com`)"
-      - "traefik.http.routers.traefik-dashboard.entrypoints=web"
-      - "traefik.http.routers.traefik-dashboard.service=api@internal"
 
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
@@ -54,22 +36,18 @@ services:
       - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
     deploy:
-      replicas: 2
-      restart_policy:
-        condition: on-failure
       update_config:
         order: start-first
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
     environment:
-      - REACT_APP_BACKEND_URL=http://is-schedule.updspace.com/api/
-    networks:
-      - is_schedule_network
+      - REACT_APP_BACKEND_URL=https://is-schedule.updspace.com/api/
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
-      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.rule=Host(\"is-schedule.updspace.com\")"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     deploy:
       replicas: 2
@@ -77,14 +55,14 @@ services:
         condition: on-failure
 
   db:
-    image: postgres:15
+    image: postgres
+    user: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_LISTEN_ADDRESSES=*
       - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
     secrets:
       - pg_password
