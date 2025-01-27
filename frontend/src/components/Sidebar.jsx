@@ -13,7 +13,6 @@ function Sidebar() {
     });
     const [loading, setLoading] = useState(true);
     const [isOpen, setIsOpen] = useState(false);
-    ё
 
     useEffect(() => {
         if (isAuthenticated) {
