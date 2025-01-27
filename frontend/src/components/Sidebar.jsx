@@ -114,6 +114,15 @@ function Sidebar() {
                         </li>
                         <li className="nav-item">
                             <NavLink
+                                to="/group_available_dates"
+                                className={({isActive}) => 'nav-link text-white' + (isActive ? ' active' : '')}
+                                onClick={() => setShowMobileSidebar(false)}
+                            >
+                                <i className="fa-solid fa-calendar-times"></i> Даты практик группы
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink
                                 to="/group_calendar"
                                 className={({isActive}) => 'nav-link text-white' + (isActive ? ' active' : '')}
                                 onClick={() => setShowMobileSidebar(false)}
