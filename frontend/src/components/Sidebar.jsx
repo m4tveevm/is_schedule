@@ -60,7 +60,7 @@ function Sidebar() {
                                 onClick={() => setShowMobileSidebar(false)}
                             >
                                 <i className="fa-solid fa-user-tie"></i> Управление
-                                сотрудниками
+                                Группами
                             </NavLink>
                         </li>
                         <li className="nav-item">
