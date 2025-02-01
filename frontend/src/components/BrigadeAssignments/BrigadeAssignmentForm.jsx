@@ -163,7 +163,7 @@ function BrigadeAssignmentForm() {
 
     return (
         <div className="container mt-4">
-            <StepsNav currentStep={5}/>
+            <StepsNav currentStep={7}/>
             <h1>{compositeId ? 'Редактировать назначения бригад' : 'Добавить назначения бригад'}</h1>
             <form onSubmit={handleSubmit}>
                 <div className="form-group mb-3">

@@ -32,13 +32,17 @@ import GroupAvailableDatesForm from "./components/GroupAvailableDates/GroupAvail
 import GroupCalendar from "./components/GroupCalendar/GroupCalendar";
 import GroupCalendarList from "./components/GroupCalendar/GroupCalendarList";
 import NotFound from "./components/NotFound";
-
+import {ToastContainer} from "react-toastify";
+import './index.css';
+import 'react-toastify/dist/ReactToastify.css';
+import React from "react";
 
 
 function App() {
     return (<Router>
         <Sidebar/>
         <div className="content">
+            <ToastContainer position="bottom-right" autoClose={3000}/>
             <Routes>
                 <Route path="/login" element={<Login/>}/>
                 <Route
@@ -88,7 +92,7 @@ function MainApp() {
         <Route path="/group_available_dates/:id/edit" element={<GroupAvailableDatesForm/>}/>
 
         <Route path="/group_calendar/" element={<GroupCalendarList/>}/>
-        <Route path="/group_calendar/:id" element={<GroupCalendar />} />
+        <Route path="/group_calendar/:id" element={<GroupCalendar/>}/>
 
         <Route path="/teacher_subject_assignments" element={<TeacherSubjectAssignmentList/>}/>
         <Route path="/teacher_subject_assignments/add" element={<TeacherSubjectAssignmentForm/>}/>
@@ -96,7 +100,7 @@ function MainApp() {
         <Route path="/profile" element={<UserProfile/>}/>
         <Route path="/settings" element={<UserSettings/>}/>
 
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<NotFound/>}/>
     </Routes>);
 }
 
