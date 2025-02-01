@@ -35,7 +35,8 @@ def get_secret(secret_name, default=""):
 SECRET_KEY = get_secret("django_secret", "fallback_secret_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", False) == "True"
+DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
+
 
 INTERNAL_IPS = [
     "127.0.0.1",
@@ -187,7 +188,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "baggage",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = False
+
 CORS_ALLOW_CREDENTIALS = True
 
 SIMPLE_JWT = {
@@ -197,6 +198,15 @@ SIMPLE_JWT = {
 }
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+
+
+
+if DEBUG:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True

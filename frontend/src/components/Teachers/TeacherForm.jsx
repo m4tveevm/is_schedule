@@ -1,10 +1,7 @@
-import React, {useState, useEffect} from 'react';
-import {useNavigate, useParams} from 'react-router-dom';
-import {
-    getTeacherById,
-    createTeacher,
-    updateTeacher
-} from '../../services/api';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getTeacherById, createTeacher, updateTeacher } from '../../services/api';
+import { toast } from 'react-toastify';
 
 function TeacherForm() {
     const [surname, setSurname] = useState('');
@@ -13,7 +10,7 @@ function TeacherForm() {
     const [shortname, setShortname] = useState('');
     const [employerType, setEmployerType] = useState('Совместитель');
     const navigate = useNavigate();
-    const {id} = useParams();
+    const { id } = useParams();
 
     useEffect(() => {
         if (id) {
@@ -28,6 +25,7 @@ function TeacherForm() {
                 })
                 .catch((error) => {
                     console.error('Ошибка при загрузке преподавателя:', error);
+                    toast.error('Ошибка при загрузке данных преподавателя.');
                 });
         }
     }, [id]);
@@ -44,27 +42,31 @@ function TeacherForm() {
         if (id) {
             updateTeacher(id, teacherData)
                 .then(() => {
+                    toast.success('Преподаватель успешно обновлен!');
                     navigate('/teachers');
                 })
                 .catch((error) => {
                     console.error('Ошибка при обновлении преподавателя:', error);
+                    toast.error('Ошибка при обновлении преподавателя.');
                 });
         } else {
             createTeacher(teacherData)
                 .then(() => {
+                    toast.success('Преподаватель успешно создан!');
                     navigate('/teachers');
                 })
                 .catch((error) => {
                     console.error('Ошибка при создании преподавателя:', error);
+                    toast.error('Ошибка при создании преподавателя.');
                 });
         }
     };
 
     return (
-        <div>
+        <div className="container mt-4">
             <h1>{id ? 'Редактировать преподавателя' : 'Добавить преподавателя'}</h1>
             <form onSubmit={handleSubmit}>
-                <div className="form-group">
+                <div className="form-group mb-2">
                     <label>Фамилия</label>
                     <input
                         type="text"
@@ -74,7 +76,7 @@ function TeacherForm() {
                         required
                     />
                 </div>
-                <div className="form-group">
+                <div className="form-group mb-2">
                     <label>Имя</label>
                     <input
                         type="text"
@@ -84,7 +86,7 @@ function TeacherForm() {
                         required
                     />
                 </div>
-                <div className="form-group">
+                <div className="form-group mb-2">
                     <label>Отчество</label>
                     <input
                         type="text"
@@ -94,7 +96,7 @@ function TeacherForm() {
                         required
                     />
                 </div>
-                <div className="form-group">
+                <div className="form-group mb-2">
                     <label>Сокращенное имя</label>
                     <input
                         type="text"
@@ -104,7 +106,7 @@ function TeacherForm() {
                         placeholder="Оставьте пустым для автогенерации"
                     />
                 </div>
-                <div className="form-group">
+                <div className="form-group mb-2">
                     <label>Тип сотрудника</label>
                     <select
                         className="form-control"

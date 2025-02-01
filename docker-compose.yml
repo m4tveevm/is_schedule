@@ -1,0 +1,83 @@
+services:
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG"
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - is_schedule_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`localhost`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=web"
+
+  backend:
+      build:
+        context: ./src
+      image: is_schedule-backend:dev
+      env_file:
+        - .env
+      environment:
+        - DJANGO_DB_HOST=${DJANGO_DB_HOST}
+        - DJANGO_DB_NAME=${DJANGO_DB_NAME}
+        - DJANGO_DB_USER=${DJANGO_DB_USER}
+        - DJANGO_SECRET=${DJANGO_SECRET}
+        - DEBUG=${DEBUG}
+      networks:
+        - is_schedule_network
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/api`)"
+        - "traefik.http.routers.backend.entrypoints=web"
+        - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      depends_on:
+        - db
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_URL: "http://backend:8000/api/"
+    image: is_schedule-frontend:dev
+    networks:
+      - is_schedule_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_LISTEN_ADDRESSES=*
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - is_schedule_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "traefik.enable=false"
+
+networks:
+  is_schedule_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
