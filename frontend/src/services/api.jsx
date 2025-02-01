@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost/api/';
+export const API_BASE_URL = "__REACT_APP_API_URL__";
 
 
 export const obtainToken = (username, password) => {
