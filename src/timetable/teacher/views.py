@@ -16,10 +16,7 @@ from subject.models import Subject
 from teacher_profile.models import TeacherProfile
 
 from .models import Teacher, TeacherUnavailableDates
-from .serializers import (
-    TeacherSerializer,
-    TeacherUnavailableDatesSerializer,
-)
+from .serializers import TeacherSerializer, TeacherUnavailableDatesSerializer
 
 
 class TeacherViewSet(viewsets.ModelViewSet):
@@ -53,7 +50,7 @@ class TeacherViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"], parser_classes=[MultiPartParser])
     def import_teachers(self, request):
         file_obj = request.FILES.get("file")
-        employer_type = request.data.get("employerType", Teacher.CONTRIBUTOR)
+        employer_type = request.data.get("employer_type", Teacher.CONTRIBUTOR)
 
         if not file_obj:
             return Response(
@@ -75,7 +72,7 @@ class TeacherViewSet(viewsets.ModelViewSet):
                     surname=row["Фамилия"],
                     name=row["Имя"],
                     lastname=row.get("Отчество", ""),
-                    employerType=employer_type,
+                    employer_type=employer_type,
                 )
 
                 subject_name = row.get("Название предмета")
@@ -102,3 +99,10 @@ class TeacherViewSet(viewsets.ModelViewSet):
 class TeacherUnavailableDatesViewSet(viewsets.ModelViewSet):
     queryset = TeacherUnavailableDates.objects.all()
     serializer_class = TeacherUnavailableDatesSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        teacher_id = self.request.query_params.get("teacher_id")
+        if teacher_id:
+            queryset = queryset.filter(teacher_id=teacher_id)
+        return queryset

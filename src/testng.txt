@@ -1,6 +1,0 @@
-flake8
-black
-flake8-quotes
-flake8-import-order
-detect-secrets
-coverage~=7.0

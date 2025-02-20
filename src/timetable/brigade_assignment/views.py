@@ -8,9 +8,10 @@ from rest_framework.response import Response
 
 from teacher.models import Teacher
 
+
 from .models import BrigadeAssignment
 from .serializers import (
-    BrigadeAssignmentCreateUpdateSerializer,
+    BrigadeAssignmentBulkSerializer,
     BrigadeAssignmentSerializer,
 )
 
@@ -33,172 +34,145 @@ class BrigadeAssignmentViewSet(viewsets.ModelViewSet):
     ]
 
     def create(self, request, *args, **kwargs):
-        serializer = BrigadeAssignmentCreateUpdateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
+        bulk_serializer = BrigadeAssignmentBulkSerializer(data=request.data)
+        bulk_serializer.is_valid(raise_exception=True)
+        data = bulk_serializer.validated_data
 
-        group_educational_plan_id = data["group_educational_plan"]
-        educational_plan_entry_id = data["educational_plan_entry"]
+        group_plan = GroupEducationalPlan.objects.get(
+            id=data["group_educational_plan"]
+        )
+        plan_entry = EducationalPlanEntry.objects.get(
+            id=data["educational_plan_entry"]
+        )
         brigades_data = data["brigades"]
 
-        try:
-            group_educational_plan = GroupEducationalPlan.objects.get(
-                id=group_educational_plan_id
-            )
-        except GroupEducationalPlan.DoesNotExist:
-            return Response(
-                {"error": "Invalid GroupEducationalPlan ID"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            educational_plan_entry = EducationalPlanEntry.objects.get(
-                id=educational_plan_entry_id
-            )
-        except EducationalPlanEntry.DoesNotExist:
-            return Response(
-                {"error": "Invalid EducationalPlanEntry ID"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        created_assignments = []
+        created = []
         for brigade in brigades_data:
-            brigade_number = brigade["brigade_number"]
-            teacher_id = brigade["teacher"]
-            if teacher_id:
-                try:
-                    teacher = Teacher.objects.get(id=teacher_id)
-                except Teacher.DoesNotExist:
-                    return Response(
-                        {"error": f"Invalid Teacher ID: {teacher_id}"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                assignment = BrigadeAssignment.objects.create(
-                    group_educational_plan=group_educational_plan,
-                    educational_plan_entry=educational_plan_entry,
-                    brigade_number=brigade_number,
-                    teacher=teacher,
+            brigade_number = brigade.get("brigade_number")
+            teacher_id = brigade.get("teacher")
+            if not teacher_id:
+                continue
+            teacher = Teacher.objects.filter(id=teacher_id).first()
+            if not teacher:
+                return Response(
+                    {"error": f"Некорректный ID преподавателя: {teacher_id}"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
-                created_assignments.append(assignment)
-        read_serializer = BrigadeAssignmentSerializer(
-            created_assignments, many=True
-        )
+            assignment = BrigadeAssignment.objects.create(
+                group_educational_plan=group_plan,
+                educational_plan_entry=plan_entry,
+                brigade_number=brigade_number,
+                teacher=teacher,
+            )
+            created.append(assignment)
+
+        read_serializer = BrigadeAssignmentSerializer(created, many=True)
         return Response(read_serializer.data, status=status.HTTP_201_CREATED)
 
-    def update(self, request, *args, **kwargs):
-        assignment = self.get_object()
-
-        serializer = self.get_serializer(assignment, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def destroy(self, request, *args, **kwargs):
-        composite_id = kwargs.get("pk")
-        group_plan_id, plan_entry_id, brigade_number = composite_id.split("-")
-        try:
-            assignment = BrigadeAssignment.objects.get(
-                group_educational_plan_id=group_plan_id,
-                educational_plan_entry_id=plan_entry_id,
-                brigade_number=brigade_number,
-            )
-            assignment.delete()
-        except BrigadeAssignment.DoesNotExist:
-            return Response(
-                {"error": "Assignment not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        return Response(
-            {"status": "Deleted successfully"},
-            status=status.HTTP_204_NO_CONTENT,
-        )
-
-    @action(detail=False, methods=["post"])
-    def bulk_update(self, request):
-        data = request.data
-        group_educational_plan_id = data.get("group_educational_plan")
-        educational_plan_entry_id = data.get("educational_plan_entry")
-        brigades_data = data.get("brigades", [])
-
-        if not group_educational_plan_id or not educational_plan_entry_id:
+    @action(detail=False, methods=["get"])
+    def bulk_get(self, request):
+        group_plan_id = request.query_params.get("group_educational_plan")
+        plan_entry_id = request.query_params.get("educational_plan_entry")
+        if not group_plan_id or not plan_entry_id:
             return Response(
                 {
-                    "error": "group_educational_plan and educational_plan_entry"
-                    "are required."
+                    "error": "Параметры group_educational_plan и "
+                    "educational_plan_entry обязательны."
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        try:
-            group_educational_plan = GroupEducationalPlan.objects.get(
-                id=group_educational_plan_id
-            )
-        except GroupEducationalPlan.DoesNotExist:
-            return Response(
-                {"error": "Invalid GroupEducationalPlan ID"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        try:
-            educational_plan_entry = EducationalPlanEntry.objects.get(
-                id=educational_plan_entry_id
-            )
-        except EducationalPlanEntry.DoesNotExist:
-            return Response(
-                {"error": "Invalid EducationalPlanEntry ID"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        requested_brigades = {
-            b["brigade_number"]: b.get("teacher")
-            for b in brigades_data
-            if "brigade_number" in b
-        }
-        existing_assignments = BrigadeAssignment.objects.filter(
-            group_educational_plan=group_educational_plan,
-            educational_plan_entry=educational_plan_entry,
+        assignments = BrigadeAssignment.objects.filter(
+            group_educational_plan=group_plan_id,
+            educational_plan_entry=plan_entry_id,
         )
-        for assignment in existing_assignments:
+        serializer = BrigadeAssignmentSerializer(assignments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"])
+    def bulk_update(self, request):
+        bulk_serializer = BrigadeAssignmentBulkSerializer(data=request.data)
+        bulk_serializer.is_valid(raise_exception=True)
+        data = bulk_serializer.validated_data
+
+        group_plan = GroupEducationalPlan.objects.get(
+            id=data["group_educational_plan"]
+        )
+        plan_entry = EducationalPlanEntry.objects.get(
+            id=data["educational_plan_entry"]
+        )
+        requested_brigades = {
+            item["brigade_number"]: item.get("teacher")
+            for item in data["brigades"]
+            if "brigade_number" in item
+        }
+
+        existing = BrigadeAssignment.objects.filter(
+            group_educational_plan=group_plan,
+            educational_plan_entry=plan_entry,
+        )
+        for assignment in existing:
             bn = assignment.brigade_number
-            if bn not in requested_brigades:
-                assignment.delete()
-                continue
-            new_teacher_id = requested_brigades[bn]
-            if new_teacher_id is None:
+            if bn not in requested_brigades or not requested_brigades[bn]:
                 assignment.delete()
             else:
+                new_teacher_id = requested_brigades[bn]
                 if assignment.teacher_id != new_teacher_id:
-                    try:
-                        teacher = Teacher.objects.get(id=new_teacher_id)
-                        assignment.teacher = teacher
-                        assignment.save()
-                    except Teacher.DoesNotExist:
+                    teacher = Teacher.objects.filter(id=new_teacher_id).first()
+                    if not teacher:
                         return Response(
-                            {"error": f"Invalid Teacher ID: {new_teacher_id}"},
+                            {
+                                "error": f"Некорректный ID преподавателя: "
+                                f"{new_teacher_id}"
+                            },
                             status=status.HTTP_400_BAD_REQUEST,
                         )
+                    assignment.teacher = teacher
+                    assignment.save()
             requested_brigades.pop(bn, None)
 
         for bn, teacher_id in requested_brigades.items():
-            if teacher_id is None:
-                continue
-            try:
-                teacher = Teacher.objects.get(id=teacher_id)
+            if teacher_id:
+                teacher = Teacher.objects.filter(id=teacher_id).first()
+                if not teacher:
+                    return Response(
+                        {
+                            "error": f"Некорректный ID преподавателя: "
+                            f"{teacher_id}"
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
                 BrigadeAssignment.objects.create(
-                    group_educational_plan=group_educational_plan,
-                    educational_plan_entry=educational_plan_entry,
+                    group_educational_plan=group_plan,
+                    educational_plan_entry=plan_entry,
                     brigade_number=bn,
                     teacher=teacher,
                 )
-            except Teacher.DoesNotExist:
-                return Response(
-                    {"error": f"Invalid Teacher ID: {teacher_id}"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-        updated_assignments = BrigadeAssignment.objects.filter(
-            group_educational_plan=group_educational_plan,
-            educational_plan_entry=educational_plan_entry,
+        updated = BrigadeAssignment.objects.filter(
+            group_educational_plan=group_plan,
+            educational_plan_entry=plan_entry,
         )
-        serializer = BrigadeAssignmentSerializer(
-            updated_assignments, many=True
-        )
+        serializer = BrigadeAssignmentSerializer(updated, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"])
+    def bulk_delete(self, request):
+        group_plan_id = request.data.get("group_educational_plan")
+        plan_entry_id = request.data.get("educational_plan_entry")
+        if not group_plan_id or not plan_entry_id:
+            return Response(
+                {
+                    "error": "Параметры group_educational_plan и "
+                    "educational_plan_entry обязательны."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        assignments = BrigadeAssignment.objects.filter(
+            group_educational_plan=group_plan_id,
+            educational_plan_entry=plan_entry_id,
+        )
+        count = assignments.count()
+        assignments.delete()
+        return Response(
+            {"status": f"Удалено {count} назначений"},
+            status=status.HTTP_200_OK,
+        )

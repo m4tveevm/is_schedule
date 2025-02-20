@@ -7,34 +7,6 @@ from rest_framework import serializers
 from .models import BrigadeAssignment
 
 
-class BrigadeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BrigadeAssignment
-        fields = ["brigade_number", "teacher"]
-
-
-class BrigadeAssignmentCreateUpdateSerializer(serializers.Serializer):
-    group_educational_plan = serializers.IntegerField()
-    educational_plan_entry = serializers.IntegerField()
-    brigades = serializers.ListField(
-        child=serializers.DictField(child=serializers.IntegerField())
-    )
-
-    def validate_group_educational_plan(self, value):
-        if not GroupEducationalPlan.objects.filter(id=value).exists():
-            raise serializers.ValidationError(
-                "Invalid GroupEducationalPlan ID"
-            )
-        return value
-
-    def validate_educational_plan_entry(self, value):
-        if not EducationalPlanEntry.objects.filter(id=value).exists():
-            raise serializers.ValidationError(
-                "Invalid EducationalPlanEntry ID"
-            )
-        return value
-
-
 class BrigadeAssignmentSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(
         source="group_educational_plan.group.name", read_only=True
@@ -76,9 +48,23 @@ class BrigadeAssignmentSerializer(serializers.ModelSerializer):
         ]
 
 
-class BrigadeAssignmentCreateSerializer(serializers.Serializer):
+class BrigadeAssignmentBulkSerializer(serializers.Serializer):
     group_educational_plan = serializers.IntegerField()
     educational_plan_entry = serializers.IntegerField()
     brigades = serializers.ListField(
-        child=serializers.DictField(child=serializers.IntegerField())
+        child=serializers.DictField(
+            child=serializers.IntegerField(), allow_empty=True
+        )
     )
+
+    def validate_group_educational_plan(self, value):
+        if not GroupEducationalPlan.objects.filter(id=value).exists():
+            raise serializers.ValidationError("Некорректный ID группы.")
+        return value
+
+    def validate_educational_plan_entry(self, value):
+        if not EducationalPlanEntry.objects.filter(id=value).exists():
+            raise serializers.ValidationError(
+                "Некорректный ID записи учебного плана."
+            )
+        return value

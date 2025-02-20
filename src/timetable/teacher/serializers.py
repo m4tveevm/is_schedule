@@ -12,7 +12,7 @@ class TeacherSerializer(serializers.ModelSerializer):
             "name",
             "lastname",
             "shortname",
-            "employerType",
+            "employer_type",
         ]
 
     def create(self, validated_data):
