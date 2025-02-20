@@ -13,7 +13,7 @@ class Teacher(models.Model):
     name = models.CharField(max_length=100)
     lastname = models.CharField(max_length=100)
     shortname = models.CharField(max_length=100, blank=True)
-    employerType = models.CharField(
+    employer_type = models.CharField(
         max_length=20, choices=EMPLOYERTYPE.items(), default=CONTRIBUTOR
     )
 

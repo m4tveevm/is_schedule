@@ -22,3 +22,10 @@ class GroupViewSet(viewsets.ModelViewSet):
 class GroupAvailableDatesViewSet(viewsets.ModelViewSet):
     queryset = GroupAvailableDates.objects.all()
     serializer_class = GroupAvailableDatesSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        group_id = self.request.query_params.get("group_id")
+        if group_id:
+            queryset = queryset.filter(group_id=group_id)
+        return queryset

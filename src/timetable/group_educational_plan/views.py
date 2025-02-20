@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from rest_framework import filters, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -19,21 +21,21 @@ class GroupEducationalPlanViewSet(viewsets.ModelViewSet):
 def group_plan_remaining(request):
     group_id = request.query_params.get("group_id")
     if not group_id:
-        return Response({"error": "group_id is required"}, status=400)
+        return Response(
+            {"error": "group_id is required"}, status=HTTPStatus.NOT_FOUND
+        )
 
+    total = {"УП": 0, "КЛ": 0, "ДК": 0}
     try:
         gep = GroupEducationalPlan.objects.select_related(
             "educational_plan"
         ).get(group_id=group_id)
     except GroupEducationalPlan.DoesNotExist:
-        return Response(
-            {"error": "No educational plan for this group"}, status=404
-        )
+        return Response(total, status=HTTPStatus.OK)
 
-    total = {"УП": 0, "КЛ": 0, "ДК": 0}
     for entry in gep.educational_plan.entries.all():
         lt_name = entry.lesson_type
         if lt_name in total:
             total[lt_name] += entry.hours
 
-    return Response(total, status=200)
+    return Response(total, status=HTTPStatus.OK)

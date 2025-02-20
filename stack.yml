@@ -47,6 +47,17 @@ services:
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DEBUG=${DEBUG}
+      - CSRF_TRUSTED_ORIGINS=https://is-schedule.updspace.com
+      - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
+      - DJANGO_SECRET_FILE=/run/secrets/django_secret
+    entrypoint: >
+      sh -c "
+        export POSTGRES_PASSWORD=$(cat /run/secrets/pg_password);
+        export DJANGO_SECRET=$(cat /run/secrets/django_secret);
+        exec gunicorn timetable.wsgi:application --bind 0.0.0.0:8000 --workers=3
+      "
     networks:
       - is_schedule_network
     secrets:

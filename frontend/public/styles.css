@@ -1,98 +1,100 @@
 #root {
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar {
-    width: 280px;
-    background-color: #343a40;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow-y: auto;
+  width: 280px;
+  background-color: #343a40;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .content {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 20px;
-    background-color: #f8f9fa;
-    box-sizing: border-box;
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  box-sizing: border-box;
 }
 
 form {
-    align-items: center;
-    padding-top: 5px;
-    padding-bottom: 10px;
+  align-items: center;
+  padding-top: 5px;
+  padding-bottom: 10px;
 }
 
 .form-signin {
-    width: 100%;
-    max-width: 380px;
-    padding: 15px;
-    margin: auto;
+  width: 100%;
+  max-width: 380px;
+  padding: 15px;
+  margin: auto;
 }
 
 .form-signin .checkbox {
-    font-weight: 400;
+  font-weight: 400;
 }
 
 .form-signin .form-floating:focus-within {
-    z-index: 2;
+  z-index: 2;
 }
 
 .form-signin input[type="email"] {
-    margin-bottom: -1px;
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 .form-signin input[type="password"] {
-    margin-bottom: 10px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 .text-center {
-    text-align: center !important;
+  text-align: center !important;
 }
 
-
 .steps-nav {
-    display: flex;
-    justify-content: center;
-    padding: 10px;
-    background-color: #eaeaea;
-    border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  background-color: #eaeaea;
+  border-radius: 10px;
 }
 
 .step-item {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 5px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #000;
-    background-color: #f9f9f9;
-    border: 2px solid #dcdcdc;
-    border-radius: 50%;
-    text-decoration: none;
-    transition: background-color 0.3s, color 0.3s, transform 0.2s;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 5px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  background-color: #f9f9f9;
+  border: 2px solid #dcdcdc;
+  border-radius: 50%;
+  text-decoration: none;
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    transform 0.2s;
 }
 
 .step-item.active {
-    background-color: #dfffa1;
-    color: #555;
-    transform: scale(1.1);
-    border-color: #c8e48c;
+  background-color: #dfffa1;
+  color: #555;
+  transform: scale(1.1);
+  border-color: #c8e48c;
 }
 
 .step-item:hover {
-    background-color: #fafafa;
-    transform: scale(1.05);
+  background-color: #fafafa;
+  transform: scale(1.05);
 }
