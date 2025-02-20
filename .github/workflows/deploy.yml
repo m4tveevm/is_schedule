@@ -36,6 +36,7 @@ jobs:
       # todo: add Unittests and django tests
 
   build-and-push:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     needs: build-and-test
     permissions:
@@ -80,6 +81,7 @@ jobs:
           docker push $FRONTEND_IMAGE:${{ github.run_number }}
 
   deploy:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
