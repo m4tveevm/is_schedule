@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("DJANGO_SECRET", default="fallback_secret_key")
 
-DEBUG = strtobool(config("DEBUG", default="False"))
+DEBUG = config("DEBUG", default="False", cast=lambda v: bool(strtobool(v or "False")))
 
 ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="*", cast=Csv())
 
