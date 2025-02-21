@@ -47,7 +47,7 @@ services:
       - DJANGO_DB_HOST=db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
-      - DJANGO_ALLOWED_HOSTS=is-schedule.updspace.com'
+      - DJANGO_ALLOWED_HOSTS=is-schedule.updspace.com
       - CSRF_TRUSTED_ORIGINS=https://is-schedule.updspace.com
       - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
       - DJANGO_SECRET_FILE=/run/secrets/django_secret
