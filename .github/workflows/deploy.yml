@@ -118,4 +118,4 @@ jobs:
             docker run --rm \
               --network $NETWORK_NAME \
               ghcr.io/${{ github.repository_owner }}/is_schedule-backend:latest \
-              sh -c "python timetable/manage.py migrate && python timetable/manage.py collectstatic --noinput"
+              sh -c "python manage.py migrate && python manage.py collectstatic --noinput"
