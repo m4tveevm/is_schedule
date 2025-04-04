@@ -9,6 +9,9 @@ services:
       - CSRF_TRUSTED_ORIGINS=https://is-schedule.updspace.com
       - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
       - DJANGO_SECRET_FILE=/run/secrets/django_secret
+      - DJANGO_SUPERUSER_USERNAME_FILE=/run/secrets/django_superuser_username
+      - DJANGO_SUPERUSER_EMAIL_FILE=/run/secrets/django_superuser_email
+      - DJANGO_SUPERUSER_PASSWORD_FILE=/run/secrets/django_superuser_password
     entrypoint: >
       sh -c "
         export POSTGRES_PASSWORD=$$(cat /run/secrets/pg_password);
