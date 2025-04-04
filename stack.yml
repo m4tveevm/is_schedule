@@ -1,5 +1,5 @@
 services:
-  is_schedule-backend:
+  backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
     environment:
       - DJANGO_DB_HOST=db
@@ -9,13 +9,16 @@ services:
       - CSRF_TRUSTED_ORIGINS=https://is-schedule.updspace.com
       - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
       - DJANGO_SECRET_FILE=/run/secrets/django_secret
+      - DJANGO_SUPERUSER_USERNAME_FILE=/run/secrets/django_superuser_username
+      - DJANGO_SUPERUSER_EMAIL_FILE=/run/secrets/django_superuser_email
+      - DJANGO_SUPERUSER_PASSWORD_FILE=/run/secrets/django_superuser_password
     entrypoint: >
       sh -c "
         export POSTGRES_PASSWORD=$$(cat /run/secrets/pg_password);
         exec gunicorn timetable.wsgi:application --bind 0.0.0.0:8000 --workers=3
       "
     networks:
-      - is_schedule_network
+      - is_net
     secrets:
       - pg_password
       - django_secret
@@ -32,12 +35,12 @@ services:
       update_config:
         order: start-first
 
-  is_schedule-frontend:
+  frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
     environment:
       - REACT_APP_API_URL=https://is-schedule.updspace.com/api/
     networks:
-      - is_schedule_network
+      - is_net
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
@@ -49,7 +52,7 @@ services:
       restart_policy:
         condition: on-failure
 
-  is_schedule-db:
+  pg15:
     image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -62,7 +65,9 @@ services:
     secrets:
       - pg_password
     networks:
-      - is_schedule_network
+      is_net:
+          aliases:
+            - db
     deploy:
       restart_policy:
         condition: any
@@ -75,7 +80,7 @@ services:
       - "traefik.enable=false"
 
 networks:
-  is_schedule_network:
+  is_net:
     driver: overlay
     attachable: true
 
