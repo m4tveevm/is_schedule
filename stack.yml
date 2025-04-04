@@ -1,47 +1,5 @@
 services:
-  traefik:
-    image: traefik:v3.1
-    command:
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--providers.swarm=true"
-      - "--providers.swarm.exposedByDefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--log.level=DEBUG"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-      - "--providers.file.filename=/etc/traefik/dynamic.yml"
-    ports:
-      - mode: host
-        protocol: tcp
-        published: 80
-        target: 80
-      - mode: host
-        protocol: tcp
-        published: 443
-        target: 443
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./dynamic.yml:/etc/traefik/dynamic.yml:ro
-    secrets:
-      - tls_cert
-      - tls_key
-    networks:
-      - is_schedule_network
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.role == manager
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.updspace.com`)"
-      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
-      - "traefik.http.routers.traefik-dashboard.tls=true"
-      - "traefik.http.routers.traefik-dashboard.service=api@internal"
-
-  backend:
+  is_schedule-backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
     environment:
       - DJANGO_DB_HOST=db
@@ -74,7 +32,7 @@ services:
       update_config:
         order: start-first
 
-  frontend:
+  is_schedule-frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
     environment:
       - REACT_APP_API_URL=https://is-schedule.updspace.com/api/
@@ -91,7 +49,7 @@ services:
       restart_policy:
         condition: on-failure
 
-  db:
+  is_schedule-db:
     image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -125,10 +83,6 @@ volumes:
   postgres_data:
 
 secrets:
-  tls_cert:
-    external: true
-  tls_key:
-    external: true
   pg_password:
     external: true
   django_secret:
