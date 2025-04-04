@@ -30,9 +30,9 @@ function Login() {
         style={{ maxWidth: "360px", width: "100%" }}
       >
         <form onSubmit={handleSubmit}>
-          <i className="d-block mx-auto mb-4 fa-solid fa-peace fa-2x text-center"></i>
+          <i className="d-block mx-auto mb-4 fa-solid fa-dna fa-2x text-center"></i>
           <h1 className="h4 mb-3 fw-bold text-center">
-            Вход в TimeTableManager
+            Вход ИС Расписание
           </h1>
           {error && <div className="alert alert-danger">{error}</div>}
 
