@@ -6,10 +6,10 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .timetable import timetable
+from .views import health
 
 urlpatterns = [
-    path("health/", timetable.views.health),
+    path("health/", health),
     path("api/admin/", admin.site.urls),
     path("api-auth/", include("rest_framework.urls")),
     path(
