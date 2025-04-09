@@ -2,7 +2,7 @@ services:
   backend:
     image: ghcr.io/m4tveevm/is_schedule-backend:latest
     environment:
-      - DJANGO_DB_HOST=db
+      - DJANGO_DB_HOST=is_schedule_db
       - DJANGO_DB_NAME=postgres
       - DJANGO_DB_USER=postgres
       - DJANGO_ALLOWED_HOSTS=is-schedule.updspace.com
@@ -19,6 +19,7 @@ services:
       "
     networks:
       - is_net
+      - traefik-public
     secrets:
       - pg_password
       - django_secret
@@ -41,6 +42,7 @@ services:
       - REACT_APP_API_URL=https://is-schedule.updspace.com/api/
     networks:
       - is_net
+      - traefik-public
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
@@ -67,7 +69,7 @@ services:
     networks:
       is_net:
           aliases:
-            - db
+            - is_schedule_db
     deploy:
       restart_policy:
         condition: any
@@ -83,6 +85,8 @@ networks:
   is_net:
     driver: overlay
     attachable: true
+  traefik-public:
+    external: true
 
 volumes:
   postgres_data:
