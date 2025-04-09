@@ -1,5 +1,7 @@
-from django.shortcuts import render
+from http import HTTPStatus
+
+from rest_framework.response import Response
 
 
-def home_view(request):
-    return render(request, "home.html")
+def health(request):
+    return Response("<p>Alive<p/>", status=HTTPStatus.OK)
