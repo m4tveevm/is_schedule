@@ -18,8 +18,8 @@ services:
         exec gunicorn timetable.wsgi:application --bind 0.0.0.0:8000 --workers=3
       "
     networks:
-      - is_net
       - traefik-public
+      - is_net
     secrets:
       - pg_password
       - django_secret
@@ -46,8 +46,8 @@ services:
     environment:
       - REACT_APP_API_URL=https://is-schedule.updspace.com/api/
     networks:
-      - is_net
       - traefik-public
+      - is_net
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
@@ -87,11 +87,11 @@ services:
       - "traefik.enable=false"
 
 networks:
+  traefik-public:
+    external: true
   is_net:
     driver: overlay
     attachable: true
-  traefik-public:
-    external: true
 
 volumes:
   postgres_data:
