@@ -25,10 +25,10 @@ services:
       - django_secret
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls=true"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.http.routers.is_schedule-backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.is_schedule-backend.entrypoints=websecure"
+      - "traefik.http.routers.is_schedule-backend.tls=true"
+      - "traefik.http.services.is_schedule-backend.loadbalancer.server.port=8000"
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8000/health/ || exit 1" ]
       interval: 30s
@@ -50,10 +50,10 @@ services:
       - is_net
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`is-schedule.updspace.com`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls=true"
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      - "traefik.http.routers.is_schedule-frontend.rule=Host(`is-schedule.updspace.com`)"
+      - "traefik.http.routers.is_schedule-frontend.entrypoints=websecure"
+      - "traefik.http.routers.is_schedule-frontend.tls=true"
+      - "traefik.http.services.is_schedule-frontend.loadbalancer.server.port=80"
     deploy:
       replicas: 2
       restart_policy:
