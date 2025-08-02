@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { uploadTeachers } from "../../services/api";
 import { toast } from "react-toastify";
 
 function TeacherUpload() {
   const [file, setFile] = useState(null);
-  const [employerType, setEmployerType] = useState("Совместитель");
+  const [employer_type, setEmployer_type] = useState("Совместитель");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [uploaded, setUploaded] = useState(false);
@@ -22,7 +22,7 @@ function TeacherUpload() {
     setError("");
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("employerType", employerType);
+    formData.append("employer_type", employer_type);
 
     uploadTeachers(formData)
       .then(() => {
@@ -48,7 +48,7 @@ function TeacherUpload() {
       <p className="text-muted">
         Загрузите Excel-файл со списком преподавателей в формате:
         <br />
-        "ФИО", "Название предмета" и т.д.
+        &#34;ФИО&#34;, &#34;Название предмета&#34; и т.д.
         <br />
         Пример структуры:
         <code> ФИО | Название предмета</code>
@@ -79,8 +79,8 @@ function TeacherUpload() {
             </label>
             <select
               className="form-control"
-              value={employerType}
-              onChange={(e) => setEmployerType(e.target.value)}
+              value={employer_type}
+              onChange={(e) => setEmployer_type(e.target.value)}
               required
             >
               <option value="Основной">Основное место работы</option>

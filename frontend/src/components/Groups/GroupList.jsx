@@ -104,6 +104,12 @@ function GroupList() {
         )}
       </div>
 
+      {groups.length === 0 && !loading && !error && newGroups.length === 0 && (
+          <div className="alert alert-info">
+            Пока нет ни одной сохранённой группы. Добавьте новую или импортируйте.
+          </div>
+      )}
+
       {error && <div className="alert alert-danger">{error}</div>}
       {loading && <p>Загрузка...</p>}
 
@@ -138,12 +144,6 @@ function GroupList() {
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {groups.length === 0 && !loading && !error && newGroups.length === 0 && (
-        <div className="alert alert-info">
-          Пока нет ни одной сохранённой группы. Добавьте новую или импортируйте.
         </div>
       )}
 

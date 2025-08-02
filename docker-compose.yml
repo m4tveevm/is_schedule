@@ -20,50 +20,9 @@ services:
       - "traefik.http.routers.traefik-dashboard.entrypoints=dashboard"
       - "traefik.http.routers.traefik-dashboard.service=api@internal"
 
-
-  backend:
-    build:
-      context: ./src
-    image: is_schedule-backend:dev
-    env_file:
-      - .env
-    environment:
-      - DJANGO_DB_HOST=${DJANGO_DB_HOST}
-      - DJANGO_DB_NAME=${DJANGO_DB_NAME}
-      - DJANGO_DB_USER=${DJANGO_DB_USER}
-      - DJANGO_SECRET=${DJANGO_SECRET}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - DEBUG=${DEBUG}
-      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
-      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
-    networks:
-      - is_schedule_network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.entrypoints=web"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
-    depends_on:
-      - db
-
-  frontend:
-    build:
-      context: ./frontend
-      args:
-        REACT_APP_API_URL: "http://localhost/api/"
-    image: is_schedule-frontend:dev
-    environment:
-      - REACT_APP_API_URL=http://localhost/api/
-    networks:
-      - is_schedule_network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
-      - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
-
   db:
     image: postgres:15
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
@@ -71,18 +30,56 @@ services:
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_LISTEN_ADDRESSES=*
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    networks:
-      - is_schedule_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - is_schedule_network
     labels:
       - "traefik.enable=false"
+
+  backend:
+    volumes:
+      - ./src:/app
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    entrypoint: [ "/app/docker-entrypoint.sh" ]
+    command:
+      - "gunicorn"
+      - "timetable.wsgi:application"
+      - "--bind"
+      - "0.0.0.0:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - is_schedule_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: "${REACT_APP_API_URL}"
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost/api/}
+    networks:
+      - is_schedule_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
 
 networks:
   is_schedule_network:

@@ -25,7 +25,7 @@ function TeacherForm() {
           setName(data.name || "");
           setLastname(data.lastname || "");
           setShortname(data.shortname || "");
-          setEmployerType(data.employerType || "Совместитель");
+          setEmployerType(data.employer_type || "Совместитель");
         })
         .catch((error) => {
           console.error("Ошибка при загрузке преподавателя:", error);
@@ -41,7 +41,7 @@ function TeacherForm() {
       name,
       lastname,
       shortname,
-      employerType,
+      employer_type: employerType,
     };
     if (id) {
       updateTeacher(id, teacherData)

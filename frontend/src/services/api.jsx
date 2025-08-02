@@ -86,9 +86,6 @@ export const deleteGroup = (id) => axios.delete(`${API_BASE_URL}groups/${id}/`);
 export const createLecture = (data) => axios.post(`${API_BASE_URL}lectures/`, data);
 export const getLectures = (params) => axios.get(`${API_BASE_URL}lectures/`, { params });
 
-// Дополнительные API
-export const getLessonTypes = () => axios.get(`${API_BASE_URL}lesson_types/`);
-
 // Предметы
 export const getSubjects = () => axios.get(`${API_BASE_URL}subjects/`);
 export const getSubjectById = (id) => axios.get(`${API_BASE_URL}subjects/${id}/`);
