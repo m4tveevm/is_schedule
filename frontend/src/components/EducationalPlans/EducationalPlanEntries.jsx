@@ -1,5 +1,3 @@
-import React from "react";
-
 function EducationalPlanEntries({
   entries,
   subjects,
@@ -11,7 +9,7 @@ function EducationalPlanEntries({
     <div>
       <h3>Предметы и часы</h3>
       <p className="text-muted">
-        Укажите для каждого предмета количество часов по типам "УП", "КЛ", "ДК".
+        Укажите для каждого предмета количество часов по типам &#34;УП&#34;, &#34;КЛ&#34;, &#34;ДК&#34;.
       </p>
       {entries.map((entry, index) => {
         const totalHours =

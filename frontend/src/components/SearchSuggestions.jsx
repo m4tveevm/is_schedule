@@ -1,5 +1,3 @@
-import React from "react";
-
 function SearchSuggestions({ suggestions, activeIndex, onSelect }) {
   return (
     <ul

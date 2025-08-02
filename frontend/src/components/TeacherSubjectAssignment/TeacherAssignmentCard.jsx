@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { createTeacherProfile, deleteTeacherProfile } from "../../services/api";
 import { toast } from "react-toastify";
 

@@ -35,7 +35,6 @@ import NotFound from "./components/NotFound";
 import { ToastContainer } from "react-toastify";
 import "./index.css";
 import "react-toastify/dist/ReactToastify.css";
-import React from "react";
 
 function App() {
   return (

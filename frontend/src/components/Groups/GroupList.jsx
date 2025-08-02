@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { getGroups, deleteGroup, createGroup } from "../../services/api";
 import { AuthContext } from "../../context/AuthContext";

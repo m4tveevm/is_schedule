@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getEducationalPlanById,
@@ -40,7 +40,7 @@ function EducationalPlanForm() {
           setDescription(data.description || "");
 
           setHasPractice(
-            data.practice_start_date || data.practice_end_date ? true : false,
+            !!(data.practice_start_date || data.practice_end_date),
           );
           setPracticeStartDate(data.practice_start_date || "");
           setPracticeEndDate(data.practice_end_date || "");

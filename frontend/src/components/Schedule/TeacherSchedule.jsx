@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { getTeachers } from "../../services/api";
 
 function TeacherSchedule() {
