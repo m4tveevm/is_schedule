@@ -9,9 +9,6 @@ services:
       - CSRF_TRUSTED_ORIGINS=https://is-schedule.updspace.com
       - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
       - DJANGO_SECRET_FILE=/run/secrets/django_secret
-      - DJANGO_SUPERUSER_USERNAME_FILE=/run/secrets/django_superuser_username
-      - DJANGO_SUPERUSER_EMAIL_FILE=/run/secrets/django_superuser_email
-      - DJANGO_SUPERUSER_PASSWORD_FILE=/run/secrets/django_superuser_password
     entrypoint: >
       sh -c "
         export POSTGRES_PASSWORD=$$(cat /run/secrets/pg_password);
@@ -23,13 +20,6 @@ services:
     secrets:
       - pg_password
       - django_secret
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.is_schedule-backend.rule: Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)
-      traefik.http.routers.is_schedule-backend.entrypoints: websecure
-      traefik.http.routers.is_schedule-backend.tls: "true"
-      traefik.http.services.is_schedule-backend.loadbalancer.server.port: "8000"
-      traefik.swarm.network: net_public
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8000/health/ || exit 1" ]
       interval: 30s
@@ -41,6 +31,12 @@ services:
         condition: on-failure
       update_config:
         order: start-first
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.is_schedule-backend.rule: Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)
+        traefik.http.routers.is_schedule-backend.entrypoints: websecure
+        traefik.http.routers.is_schedule-backend.tls: "true"
+        traefik.http.services.is_schedule-backend.loadbalancer.server.port: "8000"
 
   frontend:
     image: ghcr.io/m4tveevm/is_schedule-frontend:latest
@@ -49,17 +45,16 @@ services:
     networks:
       - net_public
       - is_net
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.is_schedule-frontend.rule: Host(`is-schedule.updspace.com`)
-      traefik.http.routers.is_schedule-frontend.entrypoints: websecure
-      traefik.http.routers.is_schedule-frontend.tls: "true"
-      traefik.http.services.is_schedule-frontend.loadbalancer.server.port: "80"
-      traefik.swarm.network: net_public
     deploy:
       replicas: 2
       restart_policy:
         condition: on-failure
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.is_schedule-frontend.rule: Host(`is-schedule.updspace.com`)
+        traefik.http.routers.is_schedule-frontend.entrypoints: websecure
+        traefik.http.routers.is_schedule-frontend.tls: "true"
+        traefik.http.services.is_schedule-frontend.loadbalancer.server.port: "80"
 
   pg15:
     image: postgres:15
@@ -75,8 +70,8 @@ services:
       - pg_password
     networks:
       is_net:
-          aliases:
-            - is_schedule_db
+        aliases:
+          - is_schedule_db
     deploy:
       restart_policy:
         condition: any
