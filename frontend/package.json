@@ -26,7 +26,8 @@
     "react-flatpickr": "^3.10.13",
     "react-router-dom": "^7.1.5",
     "react-toastify": "^11.0.3",
-    "web-vitals": "^4.2.4"
+    "web-vitals": "^4.2.4",
+    "typescript": "^5.1.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
@@ -43,6 +44,7 @@
     "prettier": "^3.6.2",
     "stylelint": "^16.23.0",
     "stylelint-config-standard": "^39.0.0",
+    "typescript": "^5.9.2",
     "vite": "^7.0.6"
   }
 }

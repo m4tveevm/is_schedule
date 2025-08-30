@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class BrigadeAssignmentConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "brigade_assignment"
+    verbose_name = "Назначение Бригад"

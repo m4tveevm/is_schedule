@@ -1,10 +1,12 @@
 FROM node:18-alpine AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
+
+COPY package.json package-lock.json tsconfig.json ./
 RUN npm ci
 
 FROM node:18-alpine AS build
 WORKDIR /app
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
@@ -17,6 +19,5 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
-
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
