@@ -24,12 +24,12 @@ services:
       - pg_password
       - django_secret
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.is_schedule-backend.rule=Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.is_schedule-backend.entrypoints=websecure"
-      - "traefik.http.routers.is_schedule-backend.tls=true"
-      - "traefik.http.services.is_schedule-backend.loadbalancer.server.port=8000"
-      - "traefik.docker.network=traefik-public"
+      traefik.enable: "true"
+      traefik.http.routers.is_schedule-backend.rule: Host(`is-schedule.updspace.com`) && PathPrefix(`/api`)
+      traefik.http.routers.is_schedule-backend.entrypoints: websecure
+      traefik.http.routers.is_schedule-backend.tls: "true"
+      traefik.http.services.is_schedule-backend.loadbalancer.server.port: "8000"
+      traefik.docker.network: net_public
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8000/health/ || exit 1" ]
       interval: 30s
@@ -50,12 +50,12 @@ services:
       - net_public
       - is_net
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.is_schedule-frontend.rule=Host(`is-schedule.updspace.com`)"
-      - "traefik.http.routers.is_schedule-frontend.entrypoints=websecure"
-      - "traefik.http.routers.is_schedule-frontend.tls=true"
-      - "traefik.http.services.is_schedule-frontend.loadbalancer.server.port=80"
-      - "traefik.docker.network=traefik-public"
+      traefik.enable: "true"
+      traefik.http.routers.is_schedule-frontend.rule: Host(`is-schedule.updspace.com`)
+      traefik.http.routers.is_schedule-frontend.entrypoints: websecure
+      traefik.http.routers.is_schedule-frontend.tls: "true"
+      traefik.http.services.is_schedule-frontend.loadbalancer.server.port: "80"
+      traefik.docker.network: net_public
     deploy:
       replicas: 2
       restart_policy:
@@ -86,7 +86,7 @@ services:
       timeout: 5s
       retries: 5
     labels:
-      - "traefik.enable=false"
+      traefik.enable: "false"
 
 networks:
   net_public:
