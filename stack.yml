@@ -18,7 +18,7 @@ services:
         exec gunicorn timetable.wsgi:application --bind 0.0.0.0:8000 --workers=3
       "
     networks:
-      - traefik-public
+      - net_public
       - is_net
     secrets:
       - pg_password
@@ -47,7 +47,7 @@ services:
     environment:
       - REACT_APP_API_URL=https://is-schedule.updspace.com/api/
     networks:
-      - traefik-public
+      - net_public
       - is_net
     labels:
       - "traefik.enable=true"
@@ -89,7 +89,7 @@ services:
       - "traefik.enable=false"
 
 networks:
-  traefik-public:
+  net_public:
     external: true
   is_net:
     driver: overlay
